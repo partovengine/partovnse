@@ -1,0 +1,128 @@
+			In the name of GOD
+====================================================================================
+                    ___           ___                         ___                   
+      ___          /  /\         /  /\          ___          /  /\          ___     
+     /  /\        /  /::\       /  /::\        /__/\        /  /::\        /  /\    
+    /  /::\      /  /:/\:\     /  /:/\:\       \  \:\      /  /:/\:\      /  /:/    
+   /  /:/\:\    /  /::\ \:\   /  /::\ \:\       \__\:\    /  /:/  \:\    /  /:/     
+  /  /::\ \:\  /__/:/\:\_\:\ /__/:/\:\_\:\      /  /::\  /__/:/ \__\:\  /__/:/  ___ 
+ /__/:/\:\_\:\ \__\/  \:\/:/ \__\/~|::\/:/     /  /:/\:\ \  \:\ /  /:/  |  |:| /  /\
+ \__\/  \:\/:/      \__\::/     |  |:|::/     /  /:/__\/  \  \:\  /:/   |  |:|/  /:/
+      \  \::/       /  /:/      |  |:|\/     /__/:/        \  \:\/:/    |__|:|__/:/ 
+       \__\/       /__/:/       |__|:|~      \__\/          \  \::/      \__\::::/  
+                   \__\/         \__\|                       \__\/           ~~~~   
+
+====================================================================================
+===
+=== 1. INTRODUCTION
+===
+====================================================================================
+ Partov is a simulation engine, supporting emulation as well,
+ making it possible to create virtual networks.
+  
+ Copyright © 2009-2014 Behnam Momeni.
+ 
+ This file is part of the Partov.
+ 
+ Partov is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ Partov is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with Partov.  If not, see <http://www.gnu.org/licenses/>.
+
+====================================================================================
+===
+=== 2. HOW TO INSTALL CENTRAL PARTOV SERVER
+===
+====================================================================================
+For installing central Partov server you need to install following dependencies:
+ 1. MySQL/MariaDB Database Management System (for users' information)
+ 2. libpcap 1.5.1 (both its library and dev version; for emulation capabilities)
+ 3. Qt 4 development libraries (latest tested version is 4.8.5)
+
+After installing MySQL database, use the ``PartovServer/deploy/bin/createdb.sql'' SQL
+file in order to create a database, user account, and required table/contents (you need
+to edit and adjust its contents like password).
+Database keeps users' accounts and is required for logging in the central Partov server
+via Client Framework (CF) instances.
+
+For compiling the central Partov server open a terminal at PartovServer folder and
+issue qmake for creating the Makefile (based on your machine settings) and then
+issue make for compiling source codes as follows:
+
+$  qmake
+$  make
+
+This will create ``partov'' binary file in the ``PartovServer/deploy/bin/'' folder.
+Partov is tested with libpcap 1.5.1 and uses new libpcap (after 1.0) API to capture
+packets.
+If you faced errors during compilation, complaining about missing pcap_* functions,
+it means that you do not have latest version of libpcap installed. You can enable
+backward compatibility (with pre 1.0 libpcap API) by uncommenting the related define
+statement ``#define USE_PRE_ONE_PCAP_API'' at the beginning of
+``PartovServer/src/edu/sharif/partov/nse/emulation/EthernetDirectAccessDriver.cpp''
+and then running the ``make'' again.
+
+Partov captures packets using libpcap and so it requires to be either executed-as-root
+or to have network capturing capability. Considering the least priveledge principle
+you can give required capabilities to that binary by running "setcapabilities.sh"
+script.
+
+Next step is to edit ``PartovServer/deploy/config/config.ini'' and indicate which
+network interfaces you want to be used, which port should be used for CF connections
+and other settings like server execution timeout, database credentials, and so on.
+It's also required to update the ``PartovServer/deploy/config/routers.map'' file and
+indicate the interface name (e.g. eth0, enp1s0, etc.). That map file contains
+a virtual map of routers which are connected to physical network interfaces.
+This map will be instantiated during the central Partov server startup and will be
+used as the gateway of other virtual maps.
+
+Afterwards, you can run the Partov's binary.
+If all dependencies were already installed, central Partov server will start working
+and listening for CF connection on 7890 TCP port (by default).
+It's also possible to use ``service_up.sh'' file in ``PartovServer/deploy/bin/'' folder
+for running central Partov server and re-launching it whenever it was killed by
+any means (as a non killable service). For killing it again, you can use
+the ``kill_service.sh'' file from same folder.
+
+For designing virtual networks maps, see the sample map files which are placed under
+the ``PartovServer/deploy/maps/'' folder. There you will find ``map.xsd'' file which
+using modern XML editors (e.g. Rinzo plugin for Eclipse) provides auto-completion for
+writing PTL map files.
+
+It's also possible to compile central Partov server for win32 systems using
+the win32 dependencies of Qt4 (placing them in win32-dep folder, on parent folder of
+the PartovServer folder) and the winpcap instead of the libpcap.
+
+====================================================================================
+===
+=== 3. Client Framework (CF)
+===
+====================================================================================
+You can find the Client Framework in the CF folder. You can pass this folder to
+distributed users.
+The CF contains two folders: The ``base'' folder which is responsible for connecting
+to the central Partov server and the "user" folder which contains the simulation
+code (this code can be run as it's placed on a virtual node within the virtual network
+in the central Partov server).
+
+The CF folder contains a small README file too.
+Anyway, the CF does not have any special dependency and should be compilable on
+most Linux systems by default.
+
+====================================================================================
+===
+=== Have a lot of fun!
+===
+====================================================================================
+ ___          _         
+ ))_)___  __  )L __ __ _
+((  ((_( (|  (( ((_)\(/'
+                        

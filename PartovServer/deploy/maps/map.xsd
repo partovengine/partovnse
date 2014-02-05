@@ -1,0 +1,706 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ptl="http://partov.ce.sharif.edu/2013/PTL/Map" xmlns:fn="http://www.w3.org/2005/xpath-functions" targetNamespace="http://partov.ce.sharif.edu/2013/PTL/Map" elementFormDefault="qualified" attributeFormDefault="qualified">
+  <!--
+    Root Tag Definition (map)
+    -->
+  <xs:complexType name="namedElement" abstract="true">
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+  <xs:element name="map" type="ptl:mapType">
+    <!--
+      FSM References
+      -->
+    <xs:keyref name="fsmStateActivityDoArg0ToLinkKeyRef" refer="ptl:linkNameKey">
+      <xs:selector xpath="ptl:fsm/ptl:state/ptl:activity/ptl:do"/>
+      <xs:field xpath="@ptl:arg0"/>
+    </xs:keyref>
+    <!--
+      Link References
+      -->
+    <!--
+      The -ref elements may contain var elements and so can not be used as keyref!
+    <xs:keyref name="linkLossToListKeyRef" refer="ptl:percentageListNameKey">
+      <xs:selector xpath="ptl:links/ptl:link/ptl:loss-ref | ptl:links/ptl:repeat/ptl:link/ptl:loss-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="linkLatencyToListKeyRef" refer="ptl:timeListNameKey">
+      <xs:selector xpath="ptl:links/ptl:link/ptl:latency-ref | ptl:links/ptl:repeat/ptl:link/ptl:latency-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="linkBandwidthToListKeyRef" refer="ptl:bandwidthListNameKey">
+      <xs:selector xpath="ptl:links/ptl:link/ptl:bandwidth-ref | ptl:links/ptl:repeat/ptl:link/ptl:bandwidth-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    -->
+    <xs:keyref name="linkLossToListKeyRef" refer="ptl:percentageListNameKey">
+      <xs:selector xpath="ptl:links/ptl:link/ptl:loss/ptl:var | ptl:links/ptl:repeat/ptl:link/ptl:loss/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="linkLatencyToListKeyRef" refer="ptl:timeListNameKey">
+      <xs:selector xpath="ptl:links/ptl:link/ptl:latency/ptl:var | ptl:links/ptl:repeat/ptl:link/ptl:latency/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="linkBandwidthToListKeyRef" refer="ptl:bandwidthListNameKey">
+      <xs:selector xpath="ptl:links/ptl:link/ptl:bandwidth/ptl:var | ptl:links/ptl:repeat/ptl:link/ptl:bandwidth/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="linkPropertiesToListKeyRef" refer="ptl:strListNameKey">
+      <xs:selector xpath="ptl:links/ptl:link/ptl:loss-ref/ptl:var | ptl:links/ptl:repeat/ptl:link/ptl:loss-ref/ptl:var | ptl:links/ptl:link/ptl:latency-ref/ptl:var | ptl:links/ptl:repeat/ptl:link/ptl:latency-ref/ptl:var | ptl:links/ptl:link/ptl:bandwidth-ref/ptl:var | ptl:links/ptl:repeat/ptl:link/ptl:bandwidth-ref/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <!--
+      Interface References
+      -->
+    <xs:keyref name="interfaceConnectedToLinkKeyRef" refer="ptl:linkNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:connected-to-link | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:connected-to-link | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:connected-to-link"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:keyref>
+    <!--
+      The -ref elements may contain var elements and so can not be used as keyref!
+    <xs:keyref name="interfaceMacAddressToListKeyRef" refer="ptl:macListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:mac-address-ref | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:mac-address-ref | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:mac-address-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceMulticastGroupsToListKeyRef" refer="ptl:ipv4ListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:multicast-groups/ptl:multicast-group-ref | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:multicast-groups/ptl:multicast-group-ref | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:multicast-groups/ptl:multicast-group-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceIpAddressToListKeyRef" refer="ptl:ipv4ListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:ip-address-ref | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:ip-address-ref | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:ip-address-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceNetmaskToListKeyRef" refer="ptl:ipv4ListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:netmask-ref | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:netmask-ref | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:netmask-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceDelayToListKeyRef" refer="ptl:timeListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:delay-ref | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:delay-ref | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:delay-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceMaxBufferSizeToListKeyRef" refer="ptl:sizeListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:max-buffer-size-ref | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:max-buffer-size-ref | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:max-buffer-size-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    -->
+    <xs:keyref name="interfaceMacAddressToListKeyRef" refer="ptl:macListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:mac-address/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:mac-address/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:mac-address/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceMulticastGroupsToListKeyRef" refer="ptl:ipv4ListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:multicast-groups/ptl:multicast-group/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:multicast-groups/ptl:multicast-group/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:multicast-groups/ptl:multicast-group/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceIpAddressToListKeyRef" refer="ptl:ipv4ListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:ip-address/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:ip-address/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:ip-address/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceNetmaskToListKeyRef" refer="ptl:ipv4ListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:netmask/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:netmask/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:netmask/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceDelayToListKeyRef" refer="ptl:timeListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:delay/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:delay/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:delay/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfaceMaxBufferSizeToListKeyRef" refer="ptl:sizeListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:max-buffer-size/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:max-buffer-size/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:max-buffer-size/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="interfacePropertiesToListKeyRef" refer="ptl:strListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:mac-address-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:mac-address-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:mac-address-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:multicast-groups/ptl:multicast-group-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:multicast-groups/ptl:multicast-group-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:multicast-groups/ptl:multicast-group-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:ip-address-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:ip-address-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:ip-address-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:netmask-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:netmask-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:netmask-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:delay-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:delay-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:delay-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:max-buffer-size-ref/ptl:var | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:max-buffer-size-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:max-buffer-size-ref/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <!--
+      Plugin References
+      -->
+    <!--
+      The -ref elements may contain var elements and so can not be used as keyref!
+    <xs:keyref name="pluginTickIntervalToListKeyRef" refer="ptl:timeListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:plugin/ptl:tick-interval-ref | ptl:nodes/ptl:repeat/ptl:plugin/ptl:tick-interval-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="pluginParamToListKeyRef" refer="ptl:strListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:plugin/ptl:parameters/ptl:param/ptl:value-ref | ptl:nodes/ptl:repeat/ptl:plugin/ptl:parameters/ptl:param/ptl:value-ref"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    -->
+    <xs:keyref name="pluginTickIntervalToListKeyRef" refer="ptl:timeListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:plugin/ptl:tick-interval/ptl:var | ptl:nodes/ptl:repeat/ptl:plugin/ptl:tick-interval/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="pluginParamToListKeyRef" refer="ptl:strListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:plugin/ptl:parameters/ptl:param/ptl:value/ptl:var | ptl:nodes/ptl:repeat/ptl:plugin/ptl:parameters/ptl:param/ptl:value/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+    <xs:keyref name="pluginPropertiesToListKeyRef" refer="ptl:strListNameKey">
+      <xs:selector xpath="ptl:nodes/ptl:plugin/ptl:tick-interval-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:plugin/ptl:tick-interval-ref/ptl:var | ptl:nodes/ptl:plugin/ptl:parameters/ptl:param/ptl:value-ref/ptl:var | ptl:nodes/ptl:repeat/ptl:plugin/ptl:parameters/ptl:param/ptl:value-ref/ptl:var"/>
+      <xs:field xpath="."/>
+    </xs:keyref>
+  </xs:element>
+  <xs:complexType name="mapType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="authorization" type="ptl:authorizationType" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="ptl:fsm" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="ptl:links" minOccurs="0" maxOccurs="1"/>
+          <xs:element ref="ptl:nodes" minOccurs="1" maxOccurs="1"/>
+          <xs:element ref="ptl:lists" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="version" use="required">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="3.0"/>
+              <xs:enumeration value="3.1"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="count" use="required" type="xs:positiveInteger"/>
+        <xs:attribute name="realtime" use="optional" type="ptl:myBoolean" default="true"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="variableHolder" mixed="true">
+    <xs:sequence>
+      <xs:element name="var" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--
+    Root Tag's Direct Children Definitions (fsm, links, nodes, lists)
+    -->
+  <xs:element name="fsm" type="ptl:fsmType">
+    <xs:key name="fsmStateNameKey">
+      <xs:selector xpath="ptl:state"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:keyref name="fsmInitialStateKeyRef" refer="ptl:fsmStateNameKey">
+      <xs:selector xpath="."/>
+      <xs:field xpath="@ptl:initial-state"/>
+    </xs:keyref>
+    <xs:keyref name="fsmStateTransitionTargetKeyRef" refer="ptl:fsmStateNameKey">
+      <xs:selector xpath="ptl:state/ptl:transitions/ptl:transition"/>
+      <xs:field xpath="@ptl:target"/>
+    </xs:keyref>
+  </xs:element>
+  <xs:element name="links" type="ptl:linksType">
+    <xs:key name="linkNameKey">
+      <xs:selector xpath="ptl:link | ptl:repeat/ptl:link"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:keyref name="connectedToLinkKeyRef" refer="ptl:linkNameKey">
+      <xs:selector xpath="ptl:link/ptl:connected-to-link | ptl:repeat/ptl:link/ptl:connected-to-link"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:keyref>
+  </xs:element>
+  <xs:element name="nodes" type="ptl:nodesType">
+    <xs:key name="nodeNameKey">
+      <xs:selector xpath="ptl:simple | ptl:plugin | ptl:repeat/ptl:simple | ptl:repeat/ptl:plugin"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+  </xs:element>
+  <xs:element name="lists" type="ptl:listsType">
+    <xs:key name="strListNameKey">
+      <xs:selector xpath="ptl:string"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:key name="macListNameKey">
+      <xs:selector xpath="ptl:mac"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:key name="ipv4ListNameKey">
+      <xs:selector xpath="ptl:ipv4"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:key name="percentageListNameKey">
+      <xs:selector xpath="ptl:percentage"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:key name="timeListNameKey">
+      <xs:selector xpath="ptl:time"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:key name="bandwidthListNameKey">
+      <xs:selector xpath="ptl:bandwidth"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+    <xs:key name="sizeListNameKey">
+      <xs:selector xpath="ptl:size"/>
+      <xs:field xpath="@ptl:name"/>
+    </xs:key>
+  </xs:element>
+  <!--
+    Composite Types Definitions (authorization, fsm, links, nodes, lists)
+    -->
+  <xs:complexType name="authorizationType">
+    <xs:sequence>
+      <xs:element name="instantiator" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="group" minOccurs="1" maxOccurs="unbounded" type="xs:string"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="connection-restriction" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="host" minOccurs="1" maxOccurs="unbounded" type="ptl:ipv4AddressType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="resumable-by" use="optional" default="instantiator">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="instantiator"/>
+          <xs:enumeration value="anyone"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="max-ipu" use="optional" default="1" type="xs:positiveInteger"/>
+  </xs:complexType>
+  <xs:complexType name="fsmType">
+    <xs:sequence>
+      <xs:element name="state" minOccurs="1" maxOccurs="unbounded" type="ptl:fsmStateType"/>
+    </xs:sequence>
+    <xs:attribute name="initial-state" use="required" type="xs:string"/>
+  </xs:complexType>
+  <xs:complexType name="linksType">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="link" type="ptl:linkType"/>
+      <xs:element name="repeat">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="link" type="ptl:linkType" maxOccurs="unbounded"/>
+          </xs:sequence>
+          <xs:attribute name="count" type="xs:positiveInteger" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="nodesType">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="simple" type="ptl:simpleNodeType"/>
+      <xs:element name="plugin" type="ptl:pluginNodeType"/>
+      <xs:element name="repeat">
+        <xs:complexType>
+          <xs:choice maxOccurs="unbounded">
+            <xs:element name="simple" type="ptl:simpleNodeType"/>
+            <xs:element name="plugin" type="ptl:pluginNodeType"/>
+          </xs:choice>
+          <xs:attribute name="count" type="xs:positiveInteger" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="listsType">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="string" type="ptl:strListType"/>
+      <xs:element name="mac" type="ptl:macListType"/>
+      <xs:element name="ipv4" type="ptl:ipv4ListType"/>
+      <xs:element name="percentage" type="ptl:percentageListType"/>
+      <xs:element name="time" type="ptl:timeListType"/>
+      <xs:element name="bandwidth" type="ptl:bandwidthListType"/>
+      <xs:element name="size" type="ptl:sizeListType"/>
+    </xs:choice>
+  </xs:complexType>
+  <!--
+    Single Element Types Definitions (state, link, node (a generalization of plugin and simple), plugin, simple, interface)
+    -->
+  <xs:complexType name="fsmStateType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="transitions" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="transition" minOccurs="1" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:attribute name="rate" use="required" type="xs:double"/>
+                    <xs:attribute name="target" use="required" type="xs:string"/>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="activity" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="do" minOccurs="1" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:attribute name="command" use="required">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="link-up"/>
+                          <xs:enumeration value="link-down"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
+                    <xs:attribute name="arg0" use="required" type="xs:string"/>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="linkType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="connected-to-link" minOccurs="0" maxOccurs="1">
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="ptl:namedElement">
+                  <xs:attribute name="direction" use="required">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:enumeration value="in"/>
+                        <xs:enumeration value="out"/>
+                        <xs:enumeration value="inout"/>
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                  <xs:attribute name="running" type="ptl:myBoolean" use="optional" default="false"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+          <xs:choice minOccurs="0" maxOccurs="1">
+            <xs:element name="loss" type="ptl:variableHolder"/>
+            <!-- type="ptl:percentage" default="0"/> -->
+            <xs:element name="loss-ref" type="ptl:variableHolder"/>
+            <!-- type="xs:string"/>-->
+          </xs:choice>
+          <xs:choice minOccurs="0" maxOccurs="1">
+            <xs:element name="latency" type="ptl:variableHolder"/>
+            <!-- type="ptl:time" default="10ms"/>-->
+            <xs:element name="latency-ref" type="ptl:variableHolder"/>
+            <!-- type="xs:string"/>-->
+          </xs:choice>
+          <xs:choice minOccurs="0" maxOccurs="1">
+            <xs:element name="bandwidth" type="ptl:variableHolder"/>
+            <!-- type="ptl:bandwidth" default="80Gbps"/>-->
+            <xs:element name="bandwidth-ref" type="ptl:variableHolder"/>
+            <!-- type="xs:string"/>-->
+          </xs:choice>
+        </xs:sequence>
+        <xs:attributeGroup ref="ptl:linkAttributes"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="simpleNodeType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="interfaces" type="ptl:interfacesType"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="pluginNodeType">
+    <xs:complexContent>
+      <xs:extension base="ptl:simpleNodeType">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="1">
+            <xs:element name="tick-interval" type="ptl:variableHolder"/>
+            <!-- type="ptl:time"/>-->
+            <xs:element name="tick-interval-ref" type="ptl:variableHolder"/>
+            <!-- type="xs:string"/>-->
+          </xs:choice>
+          <xs:element name="parameters" minOccurs="0" maxOccurs="1" type="ptl:parametersType"/>
+        </xs:sequence>
+        <xs:attribute name="plugin-identifier" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="parametersType">
+    <xs:sequence>
+      <xs:element name="param" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:complexContent>
+            <xs:extension base="ptl:namedElement">
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="value" type="ptl:variableHolder"/>
+                <!-- type="xs:string"/>-->
+                <xs:element name="value-ref" type="ptl:variableHolder"/>
+                <!-- type="xs:string"/>-->
+              </xs:choice>
+            </xs:extension>
+          </xs:complexContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="strListType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="item" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="xs:string">
+                  <xs:attribute name="count" type="xs:positiveInteger" use="optional" default="1"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="macListType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="item" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="ptl:formulaEnabledMacAddressType">
+                  <xs:attribute name="count" type="xs:positiveInteger" use="optional" default="1"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ipv4ListType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="item" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="ptl:formulaEnabledIpv4AddressType">
+                  <xs:attribute name="count" type="xs:positiveInteger" use="optional" default="1"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="percentageListType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="item" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="ptl:percentage">
+                  <xs:attribute name="count" type="xs:positiveInteger" use="optional" default="1"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="timeListType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="item" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="ptl:time">
+                  <xs:attribute name="count" type="xs:positiveInteger" use="optional" default="1"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="bandwidthListType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="item" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="ptl:bandwidth">
+                  <xs:attribute name="count" type="xs:positiveInteger" use="optional" default="1"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="sizeListType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:sequence>
+          <xs:element name="item" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:simpleContent>
+                <xs:extension base="ptl:size">
+                  <xs:attribute name="count" type="xs:positiveInteger" use="optional" default="1"/>
+                </xs:extension>
+              </xs:simpleContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+    Interfaces Definitions
+    -->
+  <xs:complexType name="interfacesType">
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="ethernet-interface" type="ptl:ethernetInterfaceType"/>
+      <xs:element name="physical-ethernet-interface" type="ptl:physicalEthernetInterfaceType"/>
+      <xs:element name="repeat">
+        <xs:complexType>
+          <xs:choice maxOccurs="unbounded">
+            <xs:element name="ethernet-interface" type="ptl:ethernetInterfaceType"/>
+            <xs:element name="physical-ethernet-interface" type="ptl:physicalEthernetInterfaceType"/>
+          </xs:choice>
+          <xs:attribute name="count" type="xs:positiveInteger" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+  </xs:complexType>
+  <xs:complexType name="interfaceType">
+    <xs:sequence>
+      <xs:choice>
+        <xs:element name="mac-address" type="ptl:variableHolder"/>
+        <!-- type="ptl:macAddressType"/>-->
+        <xs:element name="mac-address-ref" type="ptl:variableHolder"/>
+        <!-- type="xs:string"/>-->
+      </xs:choice>
+      <xs:element name="multicast-groups" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="multicast-group" type="ptl:variableHolder"/>
+            <!-- type="ptl:ipv4AddressType"/>-->
+            <xs:element name="multicast-group-ref" type="ptl:variableHolder"/>
+            <!-- type="xs:string"/>-->
+          </xs:choice>
+        </xs:complexType>
+      </xs:element>
+      <xs:choice>
+        <xs:element name="ip-address" type="ptl:variableHolder"/>
+        <!-- type="ptl:ipv4AddressType"/>-->
+        <xs:element name="ip-address-ref" type="ptl:variableHolder"/>
+        <!-- type="xs:string"/>-->
+      </xs:choice>
+      <xs:choice>
+        <xs:element name="netmask" type="ptl:variableHolder"/>
+        <!-- type="ptl:ipv4AddressType"/>-->
+        <xs:element name="netmask-ref" type="ptl:variableHolder"/>
+        <!-- type="xs:string"/>-->
+      </xs:choice>
+      <xs:choice minOccurs="0">
+        <xs:element name="delay" type="ptl:variableHolder"/>
+        <!-- type="ptl:time"/> -->
+        <xs:element name="delay-ref" type="ptl:variableHolder"/>
+        <!-- type="ptl:variableHolder"/>-->
+      </xs:choice>
+      <xs:choice minOccurs="0">
+        <xs:element name="max-buffer-size" type="ptl:variableHolder"/>
+        <!-- type="ptl:size"/>-->
+        <xs:element name="max-buffer-size-ref" type="ptl:variableHolder"/>
+        <!-- type="xs:string"/>-->
+      </xs:choice>
+    </xs:sequence>
+    <xs:attribute ref="ptl:log" use="optional"/>
+  </xs:complexType>
+  <xs:complexType name="ethernetInterfaceType">
+    <xs:complexContent>
+      <xs:extension base="ptl:interfaceType">
+        <xs:sequence>
+          <xs:element name="connected-to-link" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:complexContent>
+                <xs:extension base="ptl:namedElement">
+                  <xs:attribute name="running" type="ptl:myBoolean" use="optional" default="false"/>
+                </xs:extension>
+              </xs:complexContent>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="physicalEthernetInterfaceType">
+    <xs:complexContent>
+      <xs:extension base="ptl:interfaceType">
+        <xs:attribute name="device-name" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--
+    Attributes Definitions
+    -->
+  <xs:attributeGroup name="linkAttributes">
+    <xs:attribute name="protocol" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="csma-cd"/>
+          <xs:enumeration value="802.3"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute ref="ptl:log" use="optional"/>
+  </xs:attributeGroup>
+  <xs:attribute name="log" type="ptl:myBoolean" default="false"/>
+  <!--
+    Basic Types Definitions
+    -->
+  <xs:simpleType name="myBoolean">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="true"/>
+      <xs:enumeration value="false"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="bandwidth">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]+[GMK]?[bB]ps"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="time">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]+m?s"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="percentage">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="((100(\.0+)?|[0-9]{1,2}(\.[0-9]+)?)%|(1(\.0+)?|0?\.[0-9]+|0))"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="macAddressType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="formulaEnabledMacAddressType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="(([0-9a-fA-F]{2}|(\{[0-9]+\+([1-9][0-9]*)?i\})):){5}([0-9a-fA-F]{2}|(\{[0-9]+\+([1-9][0-9]*)?i\}))"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ipv4AddressType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="((0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="formulaEnabledIpv4AddressType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="((0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5]|(\{[0-9]+\+([1-9][0-9]*)?i\}))\.){3}(0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5]|(\{[0-9]+\+([1-9][0-9]*)?i\}))"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="size">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9]+[GMK]?[bB]"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
