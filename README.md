@@ -1,13 +1,13 @@
-#Partov NSE
+# Partov NSE
 
 The _Partov Network Simulation Emulation (PartovNSE)_ is an engine for discrete event simulation, extensible through plugins, joining real networks via emulation, supporting realtime scheduling, and a lot more.
 Latest stable version of Partov central server is **3.1.0**.
 
-##Installation
+## Installation
 
 See the _INSTALL_ file for the manual installation guide.
 
-##Usage
+## Usage
 
 After completing installation and updating config file,
 move to _PartovServer/deploy/bin/_ folder and either run
@@ -26,7 +26,7 @@ instead of termination). You can use
 
 to stop it later.
 
-##License
+## License
     Copyright © 2014  Behnam Momeni
 
     This program is free software: you can redistribute it and/or modify
@@ -41,4 +41,3 @@ to stop it later.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see {http://www.gnu.org/licenses/}.
-
