@@ -124,8 +124,11 @@ bool VariableManager::checkForVariableChild (Map *map, const QDomElement &elemen
   edu::sharif::partov::nse::map::builder::UnnamedFieldRefVisitor < Type > frVisitor (map,
       t, &edu::sharif::partov::nse::map::ListManager::getListValue < Type >,
       exceptionMessage);
+  const int index = map->getListManager ()->getIndex ();
+  map->getListManager ()->setIndex (repetitionIndex);
   edu::sharif::partov::nse::map::builder::MapReader ().readOneUnnamedElement (element,
       "var", &frVisitor);
+  map->getListManager ()->setIndex (index);
 
   return !element.firstChildElement ("var").isNull ();
 }

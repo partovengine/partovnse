@@ -177,6 +177,10 @@ int ListManager::getIndex () const {
   return index;
 }
 
+void ListManager::setIndex (int _index) {
+  index = _index;
+}
+
 }
 }
 }

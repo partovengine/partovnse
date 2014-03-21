@@ -83,6 +83,7 @@ public:
   Type getListValueByIndex (int index, const QList < Type > &list) const;
 
   int getIndex () const;
+  void setIndex (int index);
 };
 
 }
