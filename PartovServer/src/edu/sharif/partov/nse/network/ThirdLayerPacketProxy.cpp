@@ -49,6 +49,14 @@ Frame *IPBasedThirdLayerPacketProxy::analyze () {
               static_cast < ICMPPacket * > (uf));
       return l4p;
 
+    } else if (dynamic_cast < UDPPacket * > (uf)) {
+      uf->getReferenceCounter ()->ref ();
+      frame->getReferenceCounter ()->releaseLock ();
+      edu::sharif::partov::nse::network::UDPPacketProxy *l4p =
+          new edu::sharif::partov::nse::network::UDPPacketProxy (
+              static_cast < IPBasedThirdLayerPacketProxy * > (this),
+              static_cast < UDPPacket * > (uf));
+      return l4p;
     } else {
       frame->getReferenceCounter ()->releaseLock ();
       return this; // FIXME: this factory can not determine this frame (check for TCP and UDP).
@@ -56,12 +64,19 @@ Frame *IPBasedThirdLayerPacketProxy::analyze () {
   } else {
     ThirdLayerPacket < QHostAddress > *ip =
         static_cast < ThirdLayerPacket < QHostAddress > * > (frame);
-    if (ip->isHeaderChecksumValid () && ip->isIPVersion4 ()
-        && ip->isTotalLengthRealistic () && ip->isICMPPacket ()) {
+    bool ipIsValid = ip->isHeaderChecksumValid () && ip->isIPVersion4 ()
+        && ip->isTotalLengthRealistic ();
+    if (ipIsValid && ip->isICMPPacket ()) {
       ICMPPacket * icmp = new ICMPPacketImp (ip, new ReferenceCounter (), true);
       frame->getReferenceCounter ()->releaseLock ();
       edu::sharif::partov::nse::network::ICMPPacketProxy *l4p =
           new ::edu::sharif::partov::nse::network::ICMPPacketProxy (this, icmp);
+      return l4p->toFrame ();
+    } else if (ipIsValid && ip->isUDPPacket ()) {
+      UDPPacket * udp = new UDPPacket (ip, new ReferenceCounter (), true);
+      frame->getReferenceCounter ()->releaseLock ();
+      edu::sharif::partov::nse::network::UDPPacketProxy *l4p =
+          new ::edu::sharif::partov::nse::network::UDPPacketProxy (this, udp);
       return l4p->toFrame ();
     } else {
       frame->getReferenceCounter ()->releaseLock ();

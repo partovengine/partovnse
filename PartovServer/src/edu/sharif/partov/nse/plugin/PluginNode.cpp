@@ -27,6 +27,7 @@
 #include "edu/sharif/partov/nse/map/interface/Interface.h"
 
 #include "edu/sharif/partov/nse/network/ICMPPacket.h"
+#include "edu/sharif/partov/nse/network/UDPPacket.h"
 #include "edu/sharif/partov/nse/network/FrameFactory.h"
 
 #include <QStringList>
@@ -64,8 +65,12 @@ void PluginNode::pluginEngineHandleFrame (
         dynamic_cast<edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *> (af);
     edu::sharif::partov::nse::network::ICMPPacket *icmp =
         dynamic_cast<edu::sharif::partov::nse::network::ICMPPacket *> (af);
+    edu::sharif::partov::nse::network::UDPPacket *udp =
+        dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
     if (icmp) {
       ip = icmp->getLowerLayerFrame ();
+    } else if (udp) {
+      ip = udp->getLowerLayerFrame ();
     }
     if (ip) {
       if (ip->isHeaderChecksumValid () && ip->isIPVersion4 ()

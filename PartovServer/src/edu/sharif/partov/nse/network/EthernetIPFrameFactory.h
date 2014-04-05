@@ -92,6 +92,11 @@ public:
       QHostAddress srcIP,
       const edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *packet) const;
 
+  virtual edu::sharif::partov::nse::network::UDPPacket *createUDPPacket (
+      const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
+      QHostAddress srcIP, QHostAddress dstIP, quint16 srcPort, quint16 dstPort,
+      int dataSize) const;
+
 protected:
   /**
    * Prepare an ICMP message with given source MAC and IP address and set its
@@ -107,6 +112,10 @@ protected:
    * touching its body, type, or code field.
    */
   ICMPPacket *prepareIcmpMessage (int totalLength,
+      const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
+      QHostAddress srcIp, QHostAddress dstIp) const;
+
+  UDPPacket *prepareUDPPacket (int totalLength,
       const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
       QHostAddress srcIp, QHostAddress dstIp) const;
 };

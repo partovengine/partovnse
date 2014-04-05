@@ -86,9 +86,13 @@ public:
   static IPv4Packet *instantiateIPv4PacketAsIcmpMessage (
       SecondLayerFrame *_lowerLayerFrame, ReferenceCounter *_refCounter,
       const QHostAddress &srcIp, const QHostAddress &dstIp);
+  static IPv4Packet *instantiateIPv4PacketAsUDP (
+      SecondLayerFrame *_lowerLayerFrame, ReferenceCounter *_refCounter,
+      const QHostAddress &srcIp, const QHostAddress &dstIp);
   virtual ~IPv4Packet ();
 
   inline IPv4Packet *initAsICMPMessage ();
+  inline IPv4Packet *initAsUDP ();
 
   virtual void populateToRawFrame ();
 
@@ -100,6 +104,7 @@ public:
 
   virtual bool isIPVersion4 () const;
   virtual bool isICMPPacket () const;
+  virtual bool isUDPPacket () const;
   virtual bool isTCPPacket () const;
 
   virtual void resetTTL ();

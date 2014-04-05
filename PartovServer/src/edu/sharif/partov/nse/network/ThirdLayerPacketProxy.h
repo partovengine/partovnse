@@ -31,6 +31,8 @@
 #include "SecondLayerFrameProxy.h"
 #include "ICMPPacketImp.h"
 #include "ICMPPacketProxy.h"
+#include "UDPPacket.h"
+#include "UDPPacketProxy.h"
 #include "ReferenceCounter.h"
 
 namespace edu {
@@ -75,6 +77,7 @@ public:
 
   virtual bool isIPVersion4 () const;
   virtual bool isICMPPacket () const;
+  virtual bool isUDPPacket () const; 
   virtual bool isTCPPacket () const;
 
   virtual void resetTTL ();
@@ -163,6 +166,11 @@ bool ThirdLayerPacketProxy < ThirdLayerAddress >::isIPVersion4 () const {
 template < typename ThirdLayerAddress >
 bool ThirdLayerPacketProxy < ThirdLayerAddress >::isICMPPacket () const {
   return imp->isICMPPacket ();
+}
+
+template < typename ThirdLayerAddress >
+bool ThirdLayerPacketProxy < ThirdLayerAddress >::isUDPPacket () const {
+  return imp->isUDPPacket ();
 }
 
 template < typename ThirdLayerAddress >

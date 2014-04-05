@@ -25,6 +25,7 @@
 #include "IPv4Packet.h"
 
 #include "ICMPPacket.h"
+#include "UDPPacket.h"
 #include "ReferenceCounter.h"
 
 #ifdef Q_WS_WIN32
@@ -94,6 +95,16 @@ IPv4Packet *IPv4Packet::instantiateIPv4PacketAsIcmpMessage (
   return ip;
 }
 
+IPv4Packet *IPv4Packet::instantiateIPv4PacketAsUDP (
+    SecondLayerFrame *_lowerLayerFrame, ReferenceCounter *_refCounter,
+    const QHostAddress &srcIp, const QHostAddress &dstIp) {
+  IPv4Packet *ip = new IPv4Packet (_lowerLayerFrame, _refCounter, false);
+  ip->initAsUDP ();
+  ip->src = srcIp;
+  ip->dst = dstIp;
+  return ip;
+}
+
 IPv4Packet::~IPv4Packet () {
 }
 
@@ -106,6 +117,19 @@ IPv4Packet *IPv4Packet::initAsICMPMessage () {
   off = 0;
   ttl = 64;
   proto = PROTOCOL_ICMP;
+  checkSum = 0;
+  return this;
+}
+
+IPv4Packet *IPv4Packet::initAsUDP () {
+  vhl = (4 << 4) | (MIN_HEADER_LENGTH / 4);
+  startOfBody = lowerLayerFrame->getStartOfBody () + MIN_HEADER_LENGTH;
+  tos = 0;
+  len = lowerLayerFrame->getBodyLength ();
+  id = qrand ();
+  off = 0;
+  ttl = 64;
+  proto = PROTOCOL_UDP;
   checkSum = 0;
   return this;
 }
@@ -176,6 +200,10 @@ bool IPv4Packet::isIPVersion4 () const {
 
 bool IPv4Packet::isICMPPacket () const {
   return proto == PROTOCOL_ICMP && getBodyLength () >= ICMPPacket::MIN_HEADER_LENGTH;
+}
+
+bool IPv4Packet::isUDPPacket () const {
+  return proto == PROTOCOL_UDP && getBodyLength () >= UDPPacket::HEADER_LENGTH;
 }
 
 bool IPv4Packet::isTCPPacket () const {

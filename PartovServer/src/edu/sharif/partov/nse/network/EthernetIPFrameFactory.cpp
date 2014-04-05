@@ -32,6 +32,8 @@
 #include "ARPPacketProxy.h"
 #include "ICMPPacketProxy.h"
 #include "ICMPPacketImp.h"
+#include "UDPPacket.h"
+#include "UDPPacketProxy.h"
 #include "ThirdLayerPacketProxy.h"
 #include "IPv4Packet.h"
 #include "ReferenceCounter.h"
@@ -199,6 +201,20 @@ EthernetIPFrameFactory::createTimeExceededICMPMessage (
   return icmp;
 }
 
+edu::sharif::partov::nse::network::UDPPacket *
+EthernetIPFrameFactory::createUDPPacket (
+    const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
+    QHostAddress srcIP, QHostAddress dstIP, quint16 srcPort, quint16 dstPort, 
+    int dataSize) const {
+  UDPPacket *udp = prepareUDPPacket 
+      (EthernetFrame::HEADER_LENGTH + IPv4Packet::MIN_HEADER_LENGTH
+       + UDPPacket::HEADER_LENGTH + dataSize, srcMac, srcIP, dstIP);
+  udp->setSourcePortNumber(srcPort);
+  udp->setDestinationPortNumber(dstPort);
+  udp->populateToRawFrame();
+  return udp;
+}
+
 ICMPPacket *EthernetIPFrameFactory::prepareIcmpMessageInReplyToPacket (
     const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
     QHostAddress srcIP,
@@ -235,6 +251,26 @@ ICMPPacket *EthernetIPFrameFactory::prepareIcmpMessage (int totalLength,
   ICMPPacketProxy *icmpProxy = new ICMPPacketProxy (l3p, icmp);
 
   return icmpProxy;
+}
+
+UDPPacket *EthernetIPFrameFactory::prepareUDPPacket (int totalLength,
+    const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
+    QHostAddress srcIp, QHostAddress dstIp) const {
+  FirstLayerFrame *frame = new ArrayBasedFrame (totalLength, new ReferenceCounter ());
+  SecondLayerFrame *l2f = new EthernetFrame (frame, new ReferenceCounter (), false);
+  l2f->setSourceHostMACAddress (srcMac);
+
+  l2f->setAsIPPacket ();
+  IPBasedThirdLayerPacket *ip = IPv4Packet::instantiateIPv4PacketAsUDP
+      (l2f, new ReferenceCounter (), srcIp, dstIp);
+
+  UDPPacket *udp = new UDPPacket (ip, new ReferenceCounter (), false);
+  FirstLayerFrameProxy *proxy = new FirstLayerFrameProxy (frame);
+  SecondLayerFrameProxy *l2p = new SecondLayerFrameProxy (proxy, l2f);
+  IPBasedThirdLayerPacketProxy *l3p = new IPBasedThirdLayerPacketProxy (l2p, ip);
+  UDPPacketProxy *udpProxy = new UDPPacketProxy (l3p, udp);
+
+  return udpProxy;
 }
 
 }

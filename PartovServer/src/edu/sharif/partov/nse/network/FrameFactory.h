@@ -41,6 +41,7 @@ class Frame;
 class FrameProxy;
 class SecondLayerFrame;
 class ICMPPacket;
+class UDPPacket;
 
 template < typename T >
 class ThirdLayerPacket;
@@ -101,6 +102,11 @@ public:
       const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
       QHostAddress srcIP,
       const edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *packet) const = 0;
+
+  virtual edu::sharif::partov::nse::network::UDPPacket *createUDPPacket (
+      const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
+      QHostAddress srcIP, QHostAddress dstIP, quint16 srcPort, quint16 dstPort,
+      int dataSize) const = 0;
 
   static void init (FrameFactory *factory);
   static FrameFactory *getInstance ();

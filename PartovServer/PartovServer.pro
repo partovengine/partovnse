@@ -180,6 +180,8 @@ SOURCES += src/main.cpp \
            src/edu/sharif/partov/nse/network/SecondLayerFrameProxy.cpp \
            src/edu/sharif/partov/nse/network/SharedObject.cpp \
            src/edu/sharif/partov/nse/network/ThirdLayerPacketProxy.cpp \
+           src/edu/sharif/partov/nse/network/UDPPacket.cpp \
+           src/edu/sharif/partov/nse/network/UDPPacketProxy.cpp \
            src/edu/sharif/partov/nse/plugin/GeneralTCPReverseProxy.cpp \
            src/edu/sharif/partov/nse/plugin/InternetGateWayNode.cpp \
            src/edu/sharif/partov/nse/plugin/OneToOneIcmpProxy.cpp \
