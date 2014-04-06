@@ -31,6 +31,8 @@
 #include "GeneralTCPReverseProxy.h"
 #include "Pinger.h"
 #include "OneToOneIcmpProxy.h"
+#include "UDPPinger.h"
+#include "UDPPingResponder.h"
 
 namespace edu {
 namespace sharif {
@@ -51,7 +53,11 @@ PluginNodeFactory::PluginNodeFactory () {
           "GeneralTCPReverseProxyPlugin", &GeneralTCPReverseProxy::instantiatePluginNode)
       << new PluginNodeInstantiator < Pinger > ("Pinger", &Pinger::instantiatePluginNode)
       << new PluginNodeInstantiator < OneToOneIcmpProxy > ("OneToOneIcmpProxy",
-          &OneToOneIcmpProxy::instantiatePluginNode);
+          &OneToOneIcmpProxy::instantiatePluginNode)
+      << new PluginNodeInstantiator < UDPPinger > ("UDPPinger",
+          &UDPPinger::instantiatePluginNode)
+      << new PluginNodeInstantiator < UDPPingResponder > ("UDPPingResponder",
+          &UDPPingResponder::instantiatePluginNode);
 }
 
 PluginNodeFactory::~PluginNodeFactory () {

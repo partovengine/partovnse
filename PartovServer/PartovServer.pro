@@ -83,6 +83,8 @@ HEADERS += src/edu/sharif/partov/exception/Exception.h \
            src/edu/sharif/partov/nse/network/SharedObject.h \
            src/edu/sharif/partov/nse/network/ThirdLayerPacket.h \
            src/edu/sharif/partov/nse/network/ThirdLayerPacketProxy.h \
+           src/edu/sharif/partov/nse/network/UDPPacket.h \
+           src/edu/sharif/partov/nse/network/UDPPacketProxy.h \
            src/edu/sharif/partov/nse/plugin/GeneralTCPReverseProxy.h \
            src/edu/sharif/partov/nse/plugin/InternetGateWayNode.h \
            src/edu/sharif/partov/nse/plugin/NonPresentFieldException.h \
@@ -96,6 +98,8 @@ HEADERS += src/edu/sharif/partov/exception/Exception.h \
            src/edu/sharif/partov/nse/plugin/Router.h \
            src/edu/sharif/partov/nse/plugin/RoutingRule.h \
            src/edu/sharif/partov/nse/plugin/SimulatedNode.h \
+           src/edu/sharif/partov/nse/plugin/UDPPinger.h \
+           src/edu/sharif/partov/nse/plugin/UDPPingResponder.h \
            src/edu/sharif/partov/nse/server/Server.h \
            src/edu/sharif/partov/nse/server/Simulator.h \
            src/edu/sharif/partov/nse/usermanagement/Database.h \
@@ -192,6 +196,8 @@ SOURCES += src/main.cpp \
            src/edu/sharif/partov/nse/plugin/Router.cpp \
            src/edu/sharif/partov/nse/plugin/RoutingRule.cpp \
            src/edu/sharif/partov/nse/plugin/SimulatedNode.cpp \
+           src/edu/sharif/partov/nse/plugin/UDPPinger.cpp \
+           src/edu/sharif/partov/nse/plugin/UDPPingResponder.cpp \
            src/edu/sharif/partov/nse/server/Server.cpp \
            src/edu/sharif/partov/nse/server/Simulator.cpp \
            src/edu/sharif/partov/nse/usermanagement/Database.cpp \
