@@ -52,17 +52,18 @@ namespace plugin {
 class UDPPinger : public PluginNode {
 
   Q_OBJECT
+
 private:
   static const char *SENT_PINGS_LOG_KEY;
   static const char *RECEIVED_PING_REPLIES_LOG_KEY;
 
-  static const int MINIMUM_DATA_SIZE = 8;
+  static const int MINIMUM_DATA_SIZE = sizeof (quint16) + sizeof (struct timeval);
 
   QHostAddress *targetHost;
   QHostAddress *nextHop;
 
   quint16 sequenceNumber;
-  quint16 sourcePort; 
+  quint16 sourcePort;
   quint16 destinationPort;
 
   edu::sharif::partov::nse::map::interface::Interface *iface;
@@ -90,9 +91,6 @@ protected:
 
 private slots:
   void sendPingPacket ();
-
-private:
-  Q_INVOKABLE void timeoutExecution (int);
 
 public:
   static UDPPinger *instantiatePluginNode (const QString &nodeName,

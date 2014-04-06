@@ -98,7 +98,7 @@ bool UDPPacketImp::isUDPHeaderChecksumValid (bool optional) const {
 }
 
 bool UDPPacketImp::isUDPHeaderChecksumValid () const {
-  return isUDPHeaderChecksumValid (true);
+  return isUDPHeaderChecksumValid (!checksumEnabled);
 }
 
 bool UDPPacketImp::isUDPChecksumEnabled () const {

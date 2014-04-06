@@ -42,26 +42,26 @@ namespace partov {
 namespace nse {
 namespace plugin {
 
-UDPPingResponder::UDPPingResponder (const QString &nodeName, edu::sharif::partov::nse::map::Map *parent) :
-PluginNode (nodeName, parent, true, false){
+UDPPingResponder::UDPPingResponder (const QString &nodeName,
+    edu::sharif::partov::nse::map::Map *parent) :
+PluginNode (nodeName, parent, true, false) {
 }
 
 UDPPingResponder::~UDPPingResponder () {
 }
 
 void UDPPingResponder::processReceivedPacket (
-      edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *ip,
-      edu::sharif::partov::nse::map::interface::Interface *interface,
-      QHostAddress &myDestinedAddress, bool &finalizeFrame) {
+    edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *ip,
+    edu::sharif::partov::nse::map::interface::Interface *interface,
+    QHostAddress &myDestinedAddress, bool &finalizeFrame) {
   Q_UNUSED (myDestinedAddress);
-  Q_UNUSED (finalizeFrame);
- 
+
   edu::sharif::partov::nse::network::Frame *af = ip->analyze ();
   edu::sharif::partov::nse::network::UDPPacket *udp =
       dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
 
   if (udp && udp->isUDPHeaderChecksumValid ()) {
-    udp = udp->clone ();
+    finalizeFrame = false;
 
     // Swap port numbers
     quint16 port = udp->getSourcePortNumber ();
@@ -69,14 +69,12 @@ void UDPPingResponder::processReceivedPacket (
     udp->setDestinationPortNumber (port);
 
     // Swap IP Addresses
-    ip = udp->getLowerLayerFrame ();
     QHostAddress address = ip->getDestinationAddress ();
     ip->setDestinationAddress (ip->getSourceAddress ());
     ip->setSourceAddress (address);
 
     // Swap MAC Addresses
-    edu::sharif::partov::nse::network::SecondLayerFrame *l2f =
-            udp->getLowerLayerFrame ()->getLowerLayerFrame ();
+    edu::sharif::partov::nse::network::SecondLayerFrame *l2f = ip->getLowerLayerFrame ();
     l2f->setDestinationHostMACAddress (l2f->getSourceHostMACAddress ());
     l2f->setSourceHostMACAddress (*interface->getMACAddress ());
 
@@ -87,7 +85,7 @@ void UDPPingResponder::processReceivedPacket (
 }
 
 bool UDPPingResponder::setParameter (const QString &paramName, const QStringList &paramValues) {
-  return PluginNode::setParameter (paramName, paramValues); 
+  return PluginNode::setParameter (paramName, paramValues);
 }
 
 UDPPingResponder *UDPPingResponder::instantiatePluginNode (const QString &nodeName,

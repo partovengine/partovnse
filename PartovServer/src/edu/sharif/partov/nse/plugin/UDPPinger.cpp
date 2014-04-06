@@ -47,15 +47,6 @@
 #include <QHostAddress>
 #include <QStringList>
 
-#ifdef ES2_3_1
-
-#define TIME_OUT_ON_60_SECONDS_IN_SIMULATION_CLOCK
-
-#include <QTime>
-#include <QCoreApplication>
-
-#endif
-
 #ifdef Q_WS_WIN32
 #include <winsock2.h>
 #else
@@ -73,7 +64,7 @@ const char *UDPPinger::RECEIVED_PING_REPLIES_LOG_KEY = "UDPPinger.receivedPingRe
 
 UDPPinger::UDPPinger (const QString &nodeName, edu::sharif::partov::nse::map::Map *parent) :
 PluginNode (nodeName, parent, true, false), targetHost (NULL), nextHop (NULL),
-sequenceNumber (0), sourcePort (rand()), destinationPort(7), iface (0), udp (0),
+sequenceNumber (0), sourcePort (rand ()), destinationPort (7), iface (0), udp (0),
 sentPings (0), receivedPingReplies (0), dataSize (UDPPinger::MINIMUM_DATA_SIZE),
 verbose (false) {
 }
@@ -102,23 +93,21 @@ void UDPPinger::processReceivedPacket (
   Q_UNUSED (interface);
   Q_UNUSED (myDestinedAddress);
   Q_UNUSED (finalizeFrame);
- 
+
   edu::sharif::partov::nse::network::Frame *af = ip->analyze ();
 
   edu::sharif::partov::nse::network::UDPPacket *udp =
       dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
 
   if (udp && udp->isUDPHeaderChecksumValid ()
-     && udp->getDestinationPortNumber () == sourcePort
-        && udp->getLowerLayerFrame ()->getSourceAddress () == *targetHost) {
-
+      && udp->getDestinationPortNumber () == sourcePort
+      && udp->getLowerLayerFrame ()->getSourceAddress () == *targetHost) {
     quint16 seq = ntohs (ip->getLowerLayerFrame ()->getLowerLayerFrame ()
-                    ->getFrameRawDataAsInt16 (udp->getStartOfBody ()));
-                  
+                         ->getFrameRawDataAsInt16 (udp->getStartOfBody ()));
     struct timeval ts;
     ip->getLowerLayerFrame ()->getLowerLayerFrame ()
-      ->getFrameRawDataAsStream (udp->getStartOfBody () + sizeof (seq), 
-          reinterpret_cast<char *> (&ts), sizeof (ts));;
+        ->getFrameRawDataAsStream (udp->getStartOfBody () + sizeof (seq),
+                                   reinterpret_cast<char *> (&ts), sizeof (ts));
     quint64 now = edu::sharif::partov::nse::map::MapFactory::getInstance ()
         ->getMapEventScheduler ()->getCurrentClockInMicroSeconds ();
     quint64 rtt = now - (ts.tv_sec * 1000 * 1000 + ts.tv_usec);
@@ -129,7 +118,6 @@ void UDPPinger::processReceivedPacket (
     }
     receivedPingReplies++;
   }
-
 }
 
 void UDPPinger::sendPingPacket () {
@@ -147,27 +135,24 @@ void UDPPinger::sendPingPacket () {
       qWarning ("Pinger requires at least one interface.");
       return;
     }
-
     udp = edu::sharif::partov::nse::network::FrameFactory::getInstance ()
         ->createUDPPacket (*iface->getMACAddress (),
-                                          iface->getIPAddress (), *targetHost,
-                                          sourcePort, destinationPort,
-                                          dataSize);
+                           iface->getIPAddress (), *targetHost,
+                           sourcePort, destinationPort,
+                           dataSize);
   }
-
   // 2 bytes of data as sequence number
   udp->getLowerLayerFrame ()->getLowerLayerFrame ()->getLowerLayerFrame ()
       ->setFrameRawDataAsInt16 (udp->getStartOfBody (), htons (sequenceNumber));
-
   // 8 bytes of data as time stamp
   quint64 now = edu::sharif::partov::nse::map::MapFactory::getInstance ()
       ->getMapEventScheduler ()->getCurrentClockInMicroSeconds ();
-
   struct timeval timeStamp;
   timeStamp.tv_sec = now / (1000 * 1000);
   timeStamp.tv_usec = now % (1000 * 1000);
   udp->getLowerLayerFrame ()->getLowerLayerFrame ()->getLowerLayerFrame ()
-    ->setFrameRawDataAsStream(udp->getStartOfBody () + sizeof (sequenceNumber),
+      ->setFrameRawDataAsStream
+      (udp->getStartOfBody () + sizeof (sequenceNumber),
        reinterpret_cast<const char *> (&timeStamp), sizeof (timeStamp));
 
   udp->populateToRawFrame ();
@@ -184,10 +169,6 @@ void UDPPinger::tick () {
   sendPingPacket ();
 }
 
-#ifdef TIME_OUT_ON_60_SECONDS_IN_SIMULATION_CLOCK
-QTime wallClock;
-#endif
-
 bool UDPPinger::setParameter (const QString &paramName, const QStringList &paramValues) {
   if (paramName == "target-host") {
     if (paramValues.size () != 1 || targetHost != NULL) {
@@ -198,7 +179,6 @@ bool UDPPinger::setParameter (const QString &paramName, const QStringList &param
       return false;
     }
     targetHost = new QHostAddress (targetIP);
-
     return true;
 
   } else if (paramName == "next-hop") {
@@ -210,7 +190,6 @@ bool UDPPinger::setParameter (const QString &paramName, const QStringList &param
       return false;
     }
     nextHop = new QHostAddress (nextHopIP);
-
     return true;
 
   } else if (paramName == "source-port") {
@@ -220,6 +199,7 @@ bool UDPPinger::setParameter (const QString &paramName, const QStringList &param
     bool ok = true;
     sourcePort = paramValues[0].toInt (&ok);
     return ok;
+
   } else if (paramName == "destination-port") {
     if (paramValues.size () != 1) {
       return false;
@@ -227,17 +207,19 @@ bool UDPPinger::setParameter (const QString &paramName, const QStringList &param
     bool ok = true;
     destinationPort = paramValues[0].toInt (&ok);
     return ok;
+
   } else if (paramName == "data-size") {
     if (paramValues.size () != 1) {
       return false;
     }
     bool ok = true;
     int dataSize = paramValues[0].toInt (&ok);
-    if(ok && dataSize >= MINIMUM_DATA_SIZE){
+    if (ok && dataSize >= MINIMUM_DATA_SIZE) {
       this->dataSize = dataSize;
       return true;
     }
     return false;
+
   } else if (paramName == "verbose") {
     if (paramValues.size () != 1) {
       return false;
@@ -250,27 +232,11 @@ bool UDPPinger::setParameter (const QString &paramName, const QStringList &param
       return false;
     }
     return true;
+
   } else {
     return PluginNode::setParameter (paramName, paramValues);
   }
 }
-
-#ifdef TIME_OUT_ON_60_SECONDS_IN_SIMULATION_CLOCK
-
-void UDPPinger::timeoutExecution (int) {
-  int ms = wallClock.elapsed ();
-  if (verbose) {
-    qDebug () << "Timeout | Elapsed Wall Clock:" << ms;
-  }
-  QCoreApplication::quit ();
-}
-#else
-
-void UDPPinger::timeoutExecution (int) {
-  // No operation (for ES2.3.1 which requires this method, uncomment the related
-  // define statement at the beginning of this file).
-}
-#endif
 
 UDPPinger *UDPPinger::instantiatePluginNode (const QString &nodeName,
     edu::sharif::partov::nse::map::Map *parent) {
