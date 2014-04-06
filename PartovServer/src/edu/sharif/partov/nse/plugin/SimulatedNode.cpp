@@ -28,6 +28,7 @@
 #include "edu/sharif/partov/nse/network/IPv4Packet.h"
 #include "edu/sharif/partov/nse/network/FrameFactory.h"
 #include "edu/sharif/partov/nse/network/ICMPPacket.h"
+#include "edu/sharif/partov/nse/network/UDPPacket.h"
 
 #include "edu/sharif/partov/nse/map/interface/Interface.h"
 #include "edu/sharif/partov/nse/map/Map.h"
@@ -75,8 +76,14 @@ void SimulatedNode::pluginEngineHandleFrame (
       if (icmp) {
         ipv4 = icmp->getLowerLayerFrame ();
       } else {
-        ipv4 =
-            dynamic_cast<edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *> (af);
+        edu::sharif::partov::nse::network::UDPPacket *udp =
+            dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
+        if (udp) {
+          ipv4 = udp->getLowerLayerFrame ();
+        } else {
+          ipv4 =
+              dynamic_cast<edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *> (af);
+        }
       }
       if (ipv4) {
         if (ipv4->isHeaderChecksumValid () && ipv4->isIPVersion4 ()

@@ -40,31 +40,31 @@ Frame *IPBasedThirdLayerPacketProxy::analyze () {
   frame->getReferenceCounter ()->acquireLock ();
   if (frame->getUpperLayerFrame ()) {
     Frame *uf = frame->getUpperLayerFrame ();
-    if (dynamic_cast < ICMPPacket * > (uf)) {
+    if (dynamic_cast<ICMPPacket *> (uf)) {
       uf->getReferenceCounter ()->ref ();
       frame->getReferenceCounter ()->releaseLock ();
       edu::sharif::partov::nse::network::ICMPPacketProxy *l4p =
-          new edu::sharif::partov::nse::network::ICMPPacketProxy (
-              static_cast < IPBasedThirdLayerPacketProxy * > (this),
-              static_cast < ICMPPacket * > (uf));
+          new edu::sharif::partov::nse::network::ICMPPacketProxy
+          (static_cast<IPBasedThirdLayerPacketProxy *> (this),
+           static_cast<ICMPPacket *> (uf));
       return l4p;
 
-    } else if (dynamic_cast < UDPPacket * > (uf)) {
+    } else if (dynamic_cast<UDPPacket *> (uf)) {
       uf->getReferenceCounter ()->ref ();
       frame->getReferenceCounter ()->releaseLock ();
       edu::sharif::partov::nse::network::UDPPacketProxy *l4p =
-          new edu::sharif::partov::nse::network::UDPPacketProxy (
-              static_cast < IPBasedThirdLayerPacketProxy * > (this),
-              static_cast < UDPPacket * > (uf));
+          new edu::sharif::partov::nse::network::UDPPacketProxy
+          (static_cast<IPBasedThirdLayerPacketProxy *> (this),
+           static_cast<UDPPacket *> (uf));
       return l4p;
     } else {
       frame->getReferenceCounter ()->releaseLock ();
-      return this; // FIXME: this factory can not determine this frame (check for TCP and UDP).
+      return this; // FIXME: this factory can not determine this frame (check for TCP).
     }
   } else {
     ThirdLayerPacket < QHostAddress > *ip =
-        static_cast < ThirdLayerPacket < QHostAddress > * > (frame);
-    bool ipIsValid = ip->isHeaderChecksumValid () && ip->isIPVersion4 ()
+        static_cast<ThirdLayerPacket < QHostAddress > *> (frame);
+    const bool ipIsValid = ip->isHeaderChecksumValid () && ip->isIPVersion4 ()
         && ip->isTotalLengthRealistic ();
     if (ipIsValid && ip->isICMPPacket ()) {
       ICMPPacket * icmp = new ICMPPacketImp (ip, new ReferenceCounter (), true);
@@ -80,10 +80,10 @@ Frame *IPBasedThirdLayerPacketProxy::analyze () {
       return l4p->toFrame ();
     } else {
       frame->getReferenceCounter ()->releaseLock ();
-      return this; // FIXME: this factory can not determine this frame (check for TCP and UDP).
+      return this; // FIXME: this factory can not determine this frame (check for TCP).
     }
   }
-//frame->getReferenceCounter ()->releaseLock ();
+  //frame->getReferenceCounter ()->releaseLock ();
 }
 
 }

@@ -45,7 +45,9 @@ namespace network {
  * Tags:              None
  */
 class IPv4Packet : public IPBasedThirdLayerPacket {
+
 public:
+
   static inline int calcHeaderLength (quint8 byte) {
     return (byte & 0x0F) << 2;
   }

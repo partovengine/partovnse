@@ -51,7 +51,8 @@ namespace plugin {
  * Tags:              Abstract;
  */
 class PluginNode : public edu::sharif::partov::nse::map::Node {
-Q_OBJECT
+
+  Q_OBJECT
 
 public:
   PluginNode (const QString &nodeName, edu::sharif::partov::nse::map::Map *parent,

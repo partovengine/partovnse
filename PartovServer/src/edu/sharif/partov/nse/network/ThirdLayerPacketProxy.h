@@ -77,7 +77,7 @@ public:
 
   virtual bool isIPVersion4 () const;
   virtual bool isICMPPacket () const;
-  virtual bool isUDPPacket () const; 
+  virtual bool isUDPPacket () const;
   virtual bool isTCPPacket () const;
 
   virtual void resetTTL ();

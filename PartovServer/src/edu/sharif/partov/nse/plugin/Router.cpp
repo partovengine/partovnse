@@ -33,6 +33,7 @@
 #include "edu/sharif/partov/nse/network/SecondLayerFrame.h"
 #include "edu/sharif/partov/nse/network/FrameFactory.h"
 #include "edu/sharif/partov/nse/network/ICMPPacket.h"
+#include "edu/sharif/partov/nse/network/UDPPacket.h"
 #include "edu/sharif/partov/nse/network/ThirdLayerPacket.h"
 
 #include <QMutex>
@@ -140,7 +141,14 @@ void Router::destinationHostUnreachable (
     if (ip) {
       replyByHostUnreachableICMPMessage (ip);
     } else {
-      frame->finalize ();
+      edu::sharif::partov::nse::network::UDPPacket *udp =
+          dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
+      if (udp) {
+        ip = udp->getLowerLayerFrame ();
+        replyByHostUnreachableICMPMessage (ip);
+      } else {
+        frame->finalize ();
+      }
     }
   }
 }
@@ -180,8 +188,14 @@ void Router::pluginEngineHandleFrame (
                      !icmp->isICMPErrorMessage ());
       }
     } else {
-      edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *ip =
-          dynamic_cast<edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *> (af);
+      edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *ip;
+      edu::sharif::partov::nse::network::UDPPacket *udp =
+          dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
+      if (udp) {
+        ip = udp->getLowerLayerFrame ();
+      } else {
+        ip = dynamic_cast<edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *> (af);
+      }
       if (ip) {
         if (ip->isHeaderChecksumValid () && ip->isIPVersion4 ()
             && ip->isTotalLengthRealistic ()) {

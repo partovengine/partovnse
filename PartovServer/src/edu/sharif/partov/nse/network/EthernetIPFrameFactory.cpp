@@ -204,14 +204,14 @@ EthernetIPFrameFactory::createTimeExceededICMPMessage (
 edu::sharif::partov::nse::network::UDPPacket *
 EthernetIPFrameFactory::createUDPPacket (
     const edu::sharif::partov::nse::network::address::MACAddress &srcMac,
-    QHostAddress srcIP, QHostAddress dstIP, quint16 srcPort, quint16 dstPort, 
+    QHostAddress srcIP, QHostAddress dstIP, quint16 srcPort, quint16 dstPort,
     int dataSize) const {
-  UDPPacket *udp = prepareUDPPacket 
+  UDPPacket *udp = prepareUDPPacket
       (EthernetFrame::HEADER_LENGTH + IPv4Packet::MIN_HEADER_LENGTH
        + UDPPacket::HEADER_LENGTH + dataSize, srcMac, srcIP, dstIP);
-  udp->setSourcePortNumber(srcPort);
-  udp->setDestinationPortNumber(dstPort);
-  udp->populateToRawFrame();
+  udp->setSourcePortNumber (srcPort);
+  udp->setDestinationPortNumber (dstPort);
+  udp->populateToRawFrame ();
   return udp;
 }
 

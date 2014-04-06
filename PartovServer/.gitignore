@@ -1,3 +1,4 @@
 Makefile
 tmp_files/
 deploy/bin/partov
+netbeans/
