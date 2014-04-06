@@ -23,6 +23,7 @@
  */
 
 #include "ThirdLayerPacketProxy.h"
+#include "UDPPacketImp.h"
 
 namespace edu {
 namespace sharif {
@@ -67,13 +68,13 @@ Frame *IPBasedThirdLayerPacketProxy::analyze () {
     const bool ipIsValid = ip->isHeaderChecksumValid () && ip->isIPVersion4 ()
         && ip->isTotalLengthRealistic ();
     if (ipIsValid && ip->isICMPPacket ()) {
-      ICMPPacket * icmp = new ICMPPacketImp (ip, new ReferenceCounter (), true);
+      ICMPPacket *icmp = new ICMPPacketImp (ip, new ReferenceCounter (), true);
       frame->getReferenceCounter ()->releaseLock ();
       edu::sharif::partov::nse::network::ICMPPacketProxy *l4p =
           new ::edu::sharif::partov::nse::network::ICMPPacketProxy (this, icmp);
       return l4p->toFrame ();
     } else if (ipIsValid && ip->isUDPPacket ()) {
-      UDPPacket * udp = new UDPPacket (ip, new ReferenceCounter (), true);
+      UDPPacket *udp = new UDPPacketImp (ip, new ReferenceCounter (), true);
       frame->getReferenceCounter ()->releaseLock ();
       edu::sharif::partov::nse::network::UDPPacketProxy *l4p =
           new ::edu::sharif::partov::nse::network::UDPPacketProxy (this, udp);

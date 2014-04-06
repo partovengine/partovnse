@@ -37,13 +37,11 @@ namespace network {
 
 UDPPacketProxy::UDPPacketProxy (IPBasedThirdLayerPacketProxy *_lowerLayerFrame,
     UDPPacket *_imp) :
-    UDPPacket (_lowerLayerFrame, 0, false), FrameProxy (
-        _lowerLayerFrame->me ()), imp (_imp) {
+UDPPacket (_lowerLayerFrame, 0), FrameProxy (_lowerLayerFrame->me ()), imp (_imp) {
 }
 
 UDPPacketProxy::~UDPPacketProxy () {
 }
-
 
 void UDPPacketProxy::populateToRawFrame () {
   imp->populateToRawFrame ();
@@ -63,7 +61,7 @@ void UDPPacketProxy::setUDPChecksumEnabled (bool enabled) {
 }
 
 bool UDPPacketProxy::isUDPChecksumEnabled () const {
-  return imp->isUDPChecksumEnabled();
+  return imp->isUDPChecksumEnabled ();
 }
 
 void UDPPacketProxy::setSourcePortNumber (quint16 sourcePort) {
@@ -75,13 +73,13 @@ quint16 UDPPacketProxy::getSourcePortNumber () const {
   return imp->getSourcePortNumber ();
 }
 
-void UDPPacketProxy::setDestinationPortNumber (quint16 destinationPort){
+void UDPPacketProxy::setDestinationPortNumber (quint16 destinationPort) {
   detach ();
   imp->setDestinationPortNumber (destinationPort);
 }
 
 quint16 UDPPacketProxy::getDestinationPortNumber () const {
-  return imp->getDestinationPortNumber();
+  return imp->getDestinationPortNumber ();
 }
 
 int UDPPacketProxy::getBodyLength () const {
@@ -90,8 +88,8 @@ int UDPPacketProxy::getBodyLength () const {
 
 UDPPacketProxy *UDPPacketProxy::clone () const throw (NonCloneableException *) {
   imp->getReferenceCounter ()->ref ();
-  return new UDPPacketProxy (
-      static_cast < IPBasedThirdLayerPacketProxy * > (lowerLayerFrame)->clone (), imp);
+  return new UDPPacketProxy
+      (static_cast<IPBasedThirdLayerPacketProxy *> (lowerLayerFrame)->clone (), imp);
 }
 
 void UDPPacketProxy::finalize () {
@@ -106,7 +104,7 @@ void UDPPacketProxy::realFinalize () {
 }
 
 FrameProxy *UDPPacketProxy::getLowerLayerFrameProxy () const {
-  return static_cast < IPBasedThirdLayerPacketProxy * > (lowerLayerFrame)->me ();
+  return static_cast<IPBasedThirdLayerPacketProxy *> (lowerLayerFrame)->me ();
 }
 
 UDPPacket *UDPPacketProxy::getImplementation () const {
@@ -114,7 +112,7 @@ UDPPacket *UDPPacketProxy::getImplementation () const {
 }
 
 void UDPPacketProxy::setNewImplementation (Frame *newImp) {
-  UDPPacket *l3_5f = dynamic_cast < UDPPacket * > (newImp);
+  UDPPacket *l3_5f = dynamic_cast<UDPPacket *> (newImp);
   if (l3_5f) {
     imp = l3_5f;
   }

@@ -22,11 +22,10 @@
  *  
  */
 
-#ifndef UDPPACKETPROXY_H_
-#define UDPPACKETPROXY_H_
+#ifndef UDP_PACKET_IMP_H_
+#define UDP_PACKET_IMP_H_
 
 #include "UDPPacket.h"
-#include "FrameProxy.h"
 
 namespace edu {
 namespace sharif {
@@ -34,29 +33,29 @@ namespace partov {
 namespace nse {
 namespace network {
 
-template < typename ThirdLayerAddress >
-class ThirdLayerPacketProxy;
-
-typedef ThirdLayerPacketProxy < QHostAddress > IPBasedThirdLayerPacketProxy;
-
 /**
- * Name:              UDPPacketProxy
- * Parent:            UDPPacket, FrameProxy
- * Description:       This class is a proxy for UDP packet. It is used to provide
- *                    the 'just copy on write' feature.
+ * Name:              UDPPacketImp
+ * Parent:            UDPPacket
+ * Description:       Implementation of UDPPacket interface.
  *
  * Package Access:    Private
  * Package:           edu.sharif.partov.nse.network
  * Tags:              None
  */
-class UDPPacketProxy : public UDPPacket, protected FrameProxy {
+class UDPPacketImp : public UDPPacket {
 
-protected:
-  UDPPacket *imp;
+private:
+  quint16 sourcePort;
+  quint16 destinationPort;
+  quint16 length;
+  quint16 checkSum;
+
+  bool checksumEnabled;
 
 public:
-  UDPPacketProxy (IPBasedThirdLayerPacketProxy *_lowerLayerFrame, UDPPacket *_imp);
-  virtual ~UDPPacketProxy ();
+  UDPPacketImp (IPBasedThirdLayerPacket *lowerLayerFrame, ReferenceCounter *refCounter,
+      bool initializeFields);
+  virtual ~UDPPacketImp ();
 
   virtual bool isUDPHeaderChecksumValid () const;
   virtual bool isUDPHeaderChecksumValid (bool optional) const;
@@ -72,18 +71,10 @@ public:
   virtual void populateToRawFrame ();
   virtual int getBodyLength () const;
 
-  virtual UDPPacketProxy *clone () const throw (NonCloneableException *);
-  virtual void finalize ();
-  virtual void realFinalize ();
+  virtual UDPPacketImp *clone () const throw (NonCloneableException *);
 
-protected:
-  virtual FrameProxy *getLowerLayerFrameProxy () const;
-  virtual UDPPacket *getImplementation () const;
-  virtual void setNewImplementation (Frame *newImp);
-
-public:
-  virtual FrameProxy *me ();
-  virtual Frame *toFrame ();
+private:
+  quint16 calculateUDPHeaderChecksum () const;
 };
 
 }
@@ -92,4 +83,4 @@ public:
 }
 }
 
-#endif /* UDPPACKETPROXY_H_ */
+#endif /* UDPPacketImp.h */

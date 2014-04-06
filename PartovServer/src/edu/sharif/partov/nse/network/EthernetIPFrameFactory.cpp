@@ -32,8 +32,8 @@
 #include "ARPPacketProxy.h"
 #include "ICMPPacketProxy.h"
 #include "ICMPPacketImp.h"
-#include "UDPPacket.h"
 #include "UDPPacketProxy.h"
+#include "UDPPacketImp.h"
 #include "ThirdLayerPacketProxy.h"
 #include "IPv4Packet.h"
 #include "ReferenceCounter.h"
@@ -264,7 +264,8 @@ UDPPacket *EthernetIPFrameFactory::prepareUDPPacket (int totalLength,
   IPBasedThirdLayerPacket *ip = IPv4Packet::instantiateIPv4PacketAsUDP
       (l2f, new ReferenceCounter (), srcIp, dstIp);
 
-  UDPPacket *udp = new UDPPacket (ip, new ReferenceCounter (), false);
+  UDPPacket *udp = new UDPPacketImp (ip, new ReferenceCounter (), false);
+
   FirstLayerFrameProxy *proxy = new FirstLayerFrameProxy (frame);
   SecondLayerFrameProxy *l2p = new SecondLayerFrameProxy (proxy, l2f);
   IPBasedThirdLayerPacketProxy *l3p = new IPBasedThirdLayerPacketProxy (l2p, ip);

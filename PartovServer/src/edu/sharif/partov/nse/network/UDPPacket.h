@@ -38,51 +38,40 @@ namespace network {
 /**
  * Name:              UDPPacket
  * Parent:            Frame
- * Description:       The User Control Datagram Protocol implementation.
+ * Description:       The User Control Datagram Protocol interface.
  *
  * Package Access:    Public
  * Package:           edu.sharif.partov.nse.network
- * Tags:              
+ * Tags:              Abstract;
  */
 class UDPPacket : public Frame {
+
 public:
   static const int HEADER_LENGTH = 2 * 4;
 
 protected:
   IPBasedThirdLayerPacket *lowerLayerFrame;
 
-  quint16 sourcePort;
-  quint16 destinationPort;
-  quint16 length;
-  quint16 checkSum;
-
-  bool checksumEnabled;
+  UDPPacket (IPBasedThirdLayerPacket *lowerLayerFrame, ReferenceCounter *refCounter);
 
 public:
-  UDPPacket (IPBasedThirdLayerPacket *_lowerLayerFrame, ReferenceCounter *_refCounter,
-      bool initializeFields);
   virtual ~UDPPacket ();
 
   virtual IPBasedThirdLayerPacket *getLowerLayerFrame () const;
   virtual void setLowerLayerFrame (Frame *frame);
 
-  virtual bool isUDPHeaderChecksumValid () const;
-  virtual bool isUDPHeaderChecksumValid (bool optional) const;
-  virtual bool isUDPChecksumEnabled () const;
-  virtual void setUDPChecksumEnabled (bool enabled);
+  virtual bool isUDPHeaderChecksumValid () const = 0;
+  virtual bool isUDPHeaderChecksumValid (bool optional) const = 0;
 
-  virtual void setSourcePortNumber (quint16 sourcePort);
-  virtual quint16 getSourcePortNumber () const;
-  virtual void setDestinationPortNumber (quint16 destinationPort);
-  virtual quint16 getDestinationPortNumber () const;
+  virtual bool isUDPChecksumEnabled () const = 0;
+  virtual void setUDPChecksumEnabled (bool enabled) = 0;
 
-  virtual void populateToRawFrame ();
-  virtual int getBodyLength () const;
+  virtual void setSourcePortNumber (quint16 sourcePort) = 0;
+  virtual quint16 getSourcePortNumber () const = 0;
+  virtual void setDestinationPortNumber (quint16 destinationPort) = 0;
+  virtual quint16 getDestinationPortNumber () const = 0;
 
-  virtual UDPPacket *clone () const throw (NonCloneableException *);
-
-private:
-  quint16 calculateUDPHeaderChecksum () const;
+  virtual UDPPacket *clone () const throw (NonCloneableException *) = 0;
 };
 
 }

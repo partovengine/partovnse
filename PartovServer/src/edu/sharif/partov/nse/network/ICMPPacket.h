@@ -48,11 +48,13 @@ namespace network {
  * Tags:              Abstract;
  */
 class ICMPPacket : public Frame {
+
 public:
   static const int MIN_HEADER_LENGTH = 2 * 4;
   static const int MIN_ECHO_HEADER_LENGTH = 3 * 4; // Minimum header length for Echo Request and Echo Reply messages
 
   enum ICMP_TYPES {
+
     TYPE_ECHO_REPLY_MESSAGE = 0,
     TYPE_ECHO_MESSAGE = 8,
     TYPE_DESTINATION_UNREACHABLE_MESSAGE = 3,
@@ -60,6 +62,7 @@ public:
   };
 
   enum ICMP_CODES {
+
     CODE_DEFAULT = 0,
     CODE_NETWORK_UNREACHABLE = 0,
     CODE_HOST_UNREACHABLE = 1,
@@ -69,9 +72,10 @@ public:
 protected:
   IPBasedThirdLayerPacket *lowerLayerFrame;
 
-public:
   ICMPPacket (IPBasedThirdLayerPacket *_lowerLayerFrame, int _startOfBody,
       ReferenceCounter *_refCounter);
+
+public:
   virtual ~ICMPPacket ();
 
   virtual void setType (ICMP_TYPES _type) = 0;
@@ -94,6 +98,7 @@ public:
 
   virtual bool isICMPEchoMessage () const = 0; // Checks this message to be Echo Request or Echo Reply.
   virtual bool isICMPEchoRequestMessage () const = 0;
+
   virtual inline bool isICMPEchoReplyMessage () const {
     return isICMPEchoMessage () && !isICMPEchoRequestMessage ();
   }
@@ -105,10 +110,10 @@ public:
   virtual void setIdentifier (quint16 identifier) throw (NonPresentFieldException *) = 0;
   virtual quint16 getIdentifier () const throw (NonPresentFieldException *) = 0;
   virtual void setSequenceNumber (quint16 sequenceNumber)
-      throw (NonPresentFieldException *) = 0;
+  throw (NonPresentFieldException *) = 0;
   virtual quint16 getSequenceNumber () const throw (NonPresentFieldException *) = 0;
   virtual void setTimeStamp (struct ::timeval timeStamp)
-      throw (NonPresentFieldException *) = 0;
+  throw (NonPresentFieldException *) = 0;
   virtual struct ::timeval getTimeStamp () const throw (NonPresentFieldException *) = 0;
 
   virtual ICMPPacket *clone () const throw (NonCloneableException *) = 0;
