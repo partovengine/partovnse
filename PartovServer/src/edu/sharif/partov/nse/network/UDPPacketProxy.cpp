@@ -53,6 +53,10 @@ bool UDPPacketProxy::isUDPHeaderChecksumValid () const {
   return imp->isUDPHeaderChecksumValid ();
 }
 
+bool UDPPacketProxy::isUDPHeaderChecksumValid (bool optional) const {
+  return imp->isUDPHeaderChecksumValid (optional);
+}
+
 void UDPPacketProxy::setUDPChecksumEnabled (bool enabled) {
   detach ();
   imp->setUDPChecksumEnabled (enabled);

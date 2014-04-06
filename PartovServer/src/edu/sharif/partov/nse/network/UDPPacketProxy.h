@@ -58,6 +58,7 @@ public:
   virtual ~UDPPacketProxy ();
 
   virtual bool isUDPHeaderChecksumValid () const;
+  virtual bool isUDPHeaderChecksumValid (bool optional) const;
   virtual bool isUDPChecksumEnabled () const;
   virtual void setUDPChecksumEnabled (bool enabled);
 

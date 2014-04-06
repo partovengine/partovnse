@@ -47,7 +47,7 @@ UDPPacket::UDPPacket (IPBasedThirdLayerPacket *_lowerLayerFrame,
     ReferenceCounter *_refCounter, bool initializeFields) :
 Frame (_lowerLayerFrame, _lowerLayerFrame->getStartOfBody () + HEADER_LENGTH,
 _refCounter), lowerLayerFrame (_lowerLayerFrame), checksumEnabled (true) {
-  
+
   if (!initializeFields) {
     return;
   }
@@ -92,8 +92,10 @@ void UDPPacket::populateToRawFrame () {
   frame->setFrameRawDataAsInt16 (index, htons (destinationPort));
   index += sizeof (quint16);
   
-  frame->setFrameRawDataAsInt16 (index, htons (getBodyLength()));
+  frame->setFrameRawDataAsInt16 (index, htons (getBodyLength() + HEADER_LENGTH));
   index += sizeof (quint16);
+
+  lowerLayerFrame->populateToRawFrame ();
 
   if (isUDPChecksumEnabled()) {
     checkSum = calculateUDPHeaderChecksum();    
@@ -102,8 +104,6 @@ void UDPPacket::populateToRawFrame () {
     frame->setFrameRawDataAsInt16 (index, 0);
   }
   index += sizeof (quint16);
-
-  lowerLayerFrame->populateToRawFrame ();
 }
 
 bool UDPPacket::isUDPHeaderChecksumValid (bool optional) const {
@@ -153,7 +153,7 @@ UDPPacket *UDPPacket::clone () const throw (NonCloneableException*) {
 }
 
 int UDPPacket::getBodyLength () const {
-  return lowerLayerFrame->getBodyLength ();
+  return lowerLayerFrame->getBodyLength () - HEADER_LENGTH;
 }
 
 quint16 UDPPacket::calculateUDPHeaderChecksum () const {
