@@ -86,6 +86,7 @@ HEADERS += src/edu/sharif/partov/exception/Exception.h \
            src/edu/sharif/partov/nse/network/UDPPacket.h \
            src/edu/sharif/partov/nse/network/UDPPacketImp.h \
            src/edu/sharif/partov/nse/network/UDPPacketProxy.h \
+           src/edu/sharif/partov/nse/plugin/BitTorrentTracker.h \
            src/edu/sharif/partov/nse/plugin/GeneralTCPReverseProxy.h \
            src/edu/sharif/partov/nse/plugin/InternetGateWayNode.h \
            src/edu/sharif/partov/nse/plugin/NonPresentFieldException.h \
@@ -188,6 +189,7 @@ SOURCES += src/main.cpp \
            src/edu/sharif/partov/nse/network/UDPPacket.cpp \
            src/edu/sharif/partov/nse/network/UDPPacketImp.cpp \
            src/edu/sharif/partov/nse/network/UDPPacketProxy.cpp \
+           src/edu/sharif/partov/nse/plugin/BitTorrentTracker.cpp \
            src/edu/sharif/partov/nse/plugin/GeneralTCPReverseProxy.cpp \
            src/edu/sharif/partov/nse/plugin/InternetGateWayNode.cpp \
            src/edu/sharif/partov/nse/plugin/OneToOneIcmpProxy.cpp \

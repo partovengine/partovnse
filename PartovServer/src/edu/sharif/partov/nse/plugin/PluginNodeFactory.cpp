@@ -33,6 +33,7 @@
 #include "OneToOneIcmpProxy.h"
 #include "UDPPinger.h"
 #include "UDPPingResponder.h"
+#include "BitTorrentTracker.h"
 
 namespace edu {
 namespace sharif {
@@ -57,7 +58,9 @@ PluginNodeFactory::PluginNodeFactory () {
       << new PluginNodeInstantiator < UDPPinger > ("UDPPinger",
           &UDPPinger::instantiatePluginNode)
       << new PluginNodeInstantiator < UDPPingResponder > ("UDPPingResponder",
-          &UDPPingResponder::instantiatePluginNode);
+          &UDPPingResponder::instantiatePluginNode)
+      << new PluginNodeInstantiator < BitTorrentTracker > ("BitTorrentTracker",
+          &BitTorrentTracker::instantiatePluginNode);
 }
 
 PluginNodeFactory::~PluginNodeFactory () {
