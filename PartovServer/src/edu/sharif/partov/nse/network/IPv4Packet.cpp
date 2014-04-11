@@ -29,9 +29,9 @@
 #include "ReferenceCounter.h"
 
 #ifdef Q_WS_WIN32
-# include <winsock2.h>
+#include <winsock2.h>
 #else
-# include <arpa/inet.h>
+#include <arpa/inet.h>
 #endif
 
 namespace edu {
@@ -42,12 +42,11 @@ namespace network {
 
 IPv4Packet::IPv4Packet (SecondLayerFrame *_lowerLayerFrame, ReferenceCounter *_refCounter,
     bool initializeFields) :
-    IPBasedThirdLayerPacket (
-        _lowerLayerFrame,
-        _lowerLayerFrame->getStartOfBody ()
-            + IPv4Packet::calcHeaderLength (
-                _lowerLayerFrame->getLowerLayerFrame ()->getFrameRawDataAsInt8 (
-                    _lowerLayerFrame->getStartOfBody ())), _refCounter) {
+IPBasedThirdLayerPacket (_lowerLayerFrame,
+_lowerLayerFrame->getStartOfBody () + IPv4Packet::calcHeaderLength
+(_lowerLayerFrame->getLowerLayerFrame ()->getFrameRawDataAsInt8
+(_lowerLayerFrame->getStartOfBody ())),
+_refCounter) {
   if (!initializeFields) {
     return;
   }
@@ -55,34 +54,34 @@ IPv4Packet::IPv4Packet (SecondLayerFrame *_lowerLayerFrame, ReferenceCounter *_r
   FirstLayerFrame *frame = lowerLayerFrame->getLowerLayerFrame ();
 
   vhl = frame->getFrameRawDataAsInt8 (index);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   tos = frame->getFrameRawDataAsInt8 (index);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   len = ntohs (frame->getFrameRawDataAsInt16 (index));
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   id = ntohs (frame->getFrameRawDataAsInt16 (index));
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   off = ntohs (frame->getFrameRawDataAsInt16 (index));
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   ttl = frame->getFrameRawDataAsInt8 (index);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   proto = frame->getFrameRawDataAsInt8 (index);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   checkSum = ntohs (frame->getFrameRawDataAsInt16 (index));
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   src.setAddress (ntohl (frame->getFrameRawDataAsInt32 (index)));
-  index += sizeof(quint32);
+  index += sizeof (quint32);
 
   dst.setAddress (ntohl (frame->getFrameRawDataAsInt32 (index)));
-  index += sizeof(quint32);
+  index += sizeof (quint32);
 }
 
 IPv4Packet *IPv4Packet::instantiateIPv4PacketAsIcmpMessage (
@@ -139,39 +138,39 @@ void IPv4Packet::populateToRawFrame () {
   FirstLayerFrame *frame = lowerLayerFrame->getLowerLayerFrame ();
 
   frame->setFrameRawDataAsInt8 (index, vhl);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   frame->setFrameRawDataAsInt8 (index, tos);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   frame->setFrameRawDataAsInt16 (index, htons (len));
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   frame->setFrameRawDataAsInt16 (index, htons (id));
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   frame->setFrameRawDataAsInt16 (index, htons (off));
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   frame->setFrameRawDataAsInt8 (index, ttl);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   frame->setFrameRawDataAsInt8 (index, proto);
-  index += sizeof(quint8);
+  index += sizeof (quint8);
 
   frame->setFrameRawDataAsInt16 (index, 0);
-  index += sizeof(quint16);
+  index += sizeof (quint16);
 
   frame->setFrameRawDataAsInt32 (index, htonl (src.toIPv4Address ()));
-  index += sizeof(quint32);
+  index += sizeof (quint32);
 
   frame->setFrameRawDataAsInt32 (index, htonl (dst.toIPv4Address ()));
-  index += sizeof(quint32);
+  index += sizeof (quint32);
 
   checkSum = frame->calcIPHeaderChecksum (lowerLayerFrame->getStartOfBody (),
-      getHeaderLength ());
+                                          getHeaderLength ());
 
-  index -= sizeof(quint32) * 2 + sizeof(quint16);
+  index -= sizeof (quint32) * 2 + sizeof (quint16);
   frame->setFrameRawDataAsInt16 (index, checkSum);
 
   lowerLayerFrame->populateToRawFrame ();
@@ -182,8 +181,8 @@ int IPv4Packet::getBodyLength () const {
 }
 
 bool IPv4Packet::isHeaderChecksumValid () const {
-  return lowerLayerFrame->getLowerLayerFrame ()->calcIPHeaderChecksum (
-      lowerLayerFrame->getStartOfBody (), getHeaderLength ()) == 0;
+  return lowerLayerFrame->getLowerLayerFrame ()->calcIPHeaderChecksum
+      (lowerLayerFrame->getStartOfBody (), getHeaderLength ()) == 0;
 }
 
 bool IPv4Packet::isDestinationAddressMatches (const QHostAddress &ip) const {
@@ -243,9 +242,8 @@ int IPv4Packet::getHeaderLength () const {
 }
 
 IPv4Packet *IPv4Packet::clone () const throw (NonCloneableException *) {
-  IPv4Packet *me = new IPv4Packet (lowerLayerFrame->clone (), new ReferenceCounter (),
-      false);
-
+  IPv4Packet *me =
+      new IPv4Packet (lowerLayerFrame->clone (), new ReferenceCounter (), false);
   me->vhl = vhl;
   me->tos = tos;
   me->len = len;

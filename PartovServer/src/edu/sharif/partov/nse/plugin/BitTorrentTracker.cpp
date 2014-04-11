@@ -61,76 +61,76 @@ BitTorrentTracker::~BitTorrentTracker () {
 }
 
 void BitTorrentTracker::checkForExpiredPeers (int eventId) {
-    Q_UNUSED (eventId);
+  Q_UNUSED (eventId);
 
-    quint64 now = edu::sharif::partov::nse::map::MapFactory::getInstance ()
+  quint64 now = edu::sharif::partov::nse::map::MapFactory::getInstance ()
       ->getMapEventScheduler ()->getCurrentClockInMilliSeconds ();
 
-    while (!peerClockQueue->isEmpty ()) {
-      BitTorrentPeer *peer = peerClockQueue->first ();
-      if (now - peer->lastUpdateTime >= peerExpireTime) {
-        peerClockQueue->removeFirst ();
-        torrentPeers->value (peer->torrentId)->remove (peer->peerId);
-        if (verbose) {
-          qDebug () << "Peer expired " << " torrent_id: " << peer->torrentId 
-                    << "  peer_id: "   << peer->peerId;
-        }
-        delete peer;
-      } else if (!peer->pushedBack) {
-        peerClockQueue->removeFirst ();
-        peerClockQueue->append (peer);
-        peer->pushedBack = true;
-      } else {
-        edu::sharif::partov::nse::map::MapFactory::getInstance ()->getMapEventScheduler ()
-          ->scheduleEvent (peerExpireTime - (now - peer->lastUpdateTime),
-                             this, "checkForExpiredPeers");
-        return;
+  while (!peerClockQueue->isEmpty ()) {
+    BitTorrentPeer *peer = peerClockQueue->first ();
+    if (now - peer->lastUpdateTime >= peerExpireTime) {
+      peerClockQueue->removeFirst ();
+      torrentPeers->value (peer->torrentId)->remove (peer->peerId);
+      if (verbose) {
+        qDebug () << "Peer expired " << " torrent_id: " << peer->torrentId
+            << "  peer_id: " << peer->peerId;
       }
+      delete peer;
+    } else if (!peer->pushedBack) {
+      peerClockQueue->removeFirst ();
+      peerClockQueue->append (peer);
+      peer->pushedBack = true;
+    } else {
+      edu::sharif::partov::nse::map::MapFactory::getInstance ()->getMapEventScheduler ()
+          ->scheduleEvent (peerExpireTime - (now - peer->lastUpdateTime),
+                           this, "checkForExpiredPeers");
+      return;
     }
+  }
 
-    checkEventScheduled = false;
+  checkEventScheduled = false;
 }
 
 void BitTorrentTracker::handleDownloadingMessage (BitTorrentMessage &message) {
-    quint64 now = edu::sharif::partov::nse::map::MapFactory::getInstance ()
-        ->getMapEventScheduler ()->getCurrentClockInMilliSeconds();
+  quint64 now = edu::sharif::partov::nse::map::MapFactory::getInstance ()
+      ->getMapEventScheduler ()->getCurrentClockInMilliSeconds ();
 
-    PeerHash *peerHash = torrentPeers->value (message.torrentId);
-    if (!peerHash) {
-      // Create entry for this torrent id if it doesn't exist
-      peerHash = new PeerHash ();
-      torrentPeers->insert (message.torrentId, peerHash);
-    }
+  PeerHash *peerHash = torrentPeers->value (message.torrentId);
+  if (!peerHash) {
+    // Create entry for this torrent id if it doesn't exist
+    peerHash = new PeerHash ();
+    torrentPeers->insert (message.torrentId, peerHash);
+  }
 
-    BitTorrentPeer *peer = peerHash->value (message.peerId);
-    if (!peer) {
-      // Create entry for this peer if it doesn't exist
-      peer = new BitTorrentPeer ();
-      peer->torrentId = message.torrentId;
-      peer->peerId = message.peerId;
-      peer->port = message.val;
-      peer->address = new QHostAddress (*message.peerAddress);
-      peer->pushedBack = true;
+  BitTorrentPeer *peer = peerHash->value (message.peerId);
+  if (!peer) {
+    // Create entry for this peer if it doesn't exist
+    peer = new BitTorrentPeer ();
+    peer->torrentId = message.torrentId;
+    peer->peerId = message.peerId;
+    peer->port = message.val;
+    peer->address = new QHostAddress (*message.peerAddress);
+    peer->pushedBack = true;
 
-      peerHash->insert (message.peerId, peer);
-      peerClockQueue->append (peer);
+    peerHash->insert (message.peerId, peer);
+    peerClockQueue->append (peer);
 
-      if (verbose) {
-        qDebug() << "New peer register for torrent_id: " << peer->torrentId 
+    if (verbose) {
+      qDebug () << "New peer register for torrent_id: " << peer->torrentId
           << ",  peer_id: " << peer->peerId << " address: " << peer->address
           << " port: " << peer->port;
-      }
-    } else {
-      peer->pushedBack = false;
     }
+  } else {
+    peer->pushedBack = false;
+  }
 
-    peer->lastUpdateTime = now;
+  peer->lastUpdateTime = now;
 
-    if (!checkEventScheduled) {
-      edu::sharif::partov::nse::map::MapFactory::getInstance ()->getMapEventScheduler()
+  if (!checkEventScheduled) {
+    edu::sharif::partov::nse::map::MapFactory::getInstance ()->getMapEventScheduler ()
         ->scheduleEvent (peerExpireTime, this, "checkForExpiredPeers");
-      checkEventScheduled = true;
-    }
+    checkEventScheduled = true;
+  }
 }
 
 bool bitTorrentPeerLessThan (BitTorrentPeer* &peer1, BitTorrentPeer* &peer2) {
@@ -142,7 +142,7 @@ void BitTorrentTracker::handleRequestMessage (
     BitTorrentMessage &message) {
   QList < BitTorrentPeer* > peerList = torrentPeers->value (message.torrentId)->values ();
   BitTorrentPeer* requesterPeer = torrentPeers->value (message.torrentId)->value (message.peerId);
-  peerList.removeOne(requesterPeer);
+  peerList.removeOne (requesterPeer);
   quint16 requestedPeerCount = qMin < quint16 > (message.val, peerList.size ());
 
   // Implementing a random selection from the list
@@ -152,13 +152,13 @@ void BitTorrentTracker::handleRequestMessage (
   qSort (peerList.begin (), peerList.begin () + requestedPeerCount, bitTorrentPeerLessThan);
 
   // Create UDP packet with Peer List message
-  edu::sharif::partov::nse::network::UDPPacket* udp = 
-    edu::sharif::partov::nse::network::FrameFactory::getInstance ()
+  edu::sharif::partov::nse::network::UDPPacket* udp =
+      edu::sharif::partov::nse::network::FrameFactory::getInstance ()
       ->createUDPPacket (*interface->getMACAddress (), interface->getIPAddress (),
-                          *(message.peerAddress), listeningPort, message.peerPort,
-                          BitTorrentMessage::MINIMUM_MESSAGE_SIZE + requestedPeerCount * 8);
-  edu::sharif::partov::nse::network::FirstLayerFrame* frame = 
-    udp->getLowerLayerFrame ()->getLowerLayerFrame ()->getLowerLayerFrame ();
+                         *(message.peerAddress), listeningPort, message.peerPort,
+                         BitTorrentMessage::MINIMUM_MESSAGE_SIZE + requestedPeerCount * 8);
+  edu::sharif::partov::nse::network::FirstLayerFrame* frame =
+      udp->getLowerLayerFrame ()->getLowerLayerFrame ()->getLowerLayerFrame ();
 
   int index = udp->getStartOfBody ();
   frame->setFrameRawDataAsInt16 (index, htons (message.torrentId));
@@ -187,10 +187,10 @@ void BitTorrentTracker::handleRequestMessage (
     index += sizeof (quint16);
   }
 
-  udp->setUDPChecksumEnabled(forceUDPChecksum);
+  udp->setUDPChecksumEnabled (forceUDPChecksum);
   udp->populateToRawFrame ();
-  getSecondLayerTransceiver ()->sendFrame(udp->getLowerLayerFrame ()->getLowerLayerFrame (),
-                                          interface, *message.peerAddress);
+  getSecondLayerTransceiver ()->sendFrame (udp->getLowerLayerFrame ()->getLowerLayerFrame (),
+                                           interface, *message.peerAddress);
 }
 
 void BitTorrentTracker::processReceivedPacket (
@@ -199,18 +199,18 @@ void BitTorrentTracker::processReceivedPacket (
     QHostAddress &myDestinedAddress, bool &finalizeFrame) {
   Q_UNUSED (myDestinedAddress);
   Q_UNUSED (finalizeFrame);
-          
+
   edu::sharif::partov::nse::network::Frame *af = ip->analyze ();
   edu::sharif::partov::nse::network::UDPPacket *udp =
       dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
 
   if (udp && udp->isUDPHeaderChecksumValid (!forceUDPChecksum)
-      && udp->getDestinationPortNumber() == listeningPort) {
+      && udp->getDestinationPortNumber () == listeningPort) {
     BitTorrentMessage message (udp);
 
     if (message.message == BitTorrentMessage::MESSAGE_DOWNLOADING) {
       handleDownloadingMessage (message);
-    } else if (message.message== BitTorrentMessage::MESSAGE_REQUEST_PEERS) {
+    } else if (message.message == BitTorrentMessage::MESSAGE_REQUEST_PEERS) {
       handleRequestMessage (interface, message);
     }
   }
@@ -222,14 +222,14 @@ bool BitTorrentTracker::setParameter (const QString &paramName, const QStringLis
       return false;
     }
     bool ok;
-    listeningPort = paramValues[0].toInt(&ok);
+    listeningPort = paramValues[0].toInt (&ok);
     return ok;
   } else if (paramName == "peer-expire-time") { // In seconds
     if (paramValues.size () != 1) {
       return false;
     }
     bool ok;
-    peerExpireTime = paramValues[0].toInt(&ok);
+    peerExpireTime = paramValues[0].toInt (&ok);
     if (ok) {
       peerExpireTime *= 1000;
       return true;
@@ -269,9 +269,9 @@ BitTorrentTracker *BitTorrentTracker::instantiatePluginNode (const QString &node
 }
 
 BitTorrentMessage::BitTorrentMessage (edu::sharif::partov::nse::network::UDPPacket* udp) {
-  int index = udp->getStartOfBody();
-  edu::sharif::partov::nse::network::FirstLayerFrame* frame = udp->getLowerLayerFrame()
-    ->getLowerLayerFrame()->getLowerLayerFrame();
+  int index = udp->getStartOfBody ();
+  edu::sharif::partov::nse::network::FirstLayerFrame* frame = udp->getLowerLayerFrame ()
+      ->getLowerLayerFrame ()->getLowerLayerFrame ();
 
   torrentId = ntohs (frame->getFrameRawDataAsInt16 (index));
   index += sizeof (quint16);

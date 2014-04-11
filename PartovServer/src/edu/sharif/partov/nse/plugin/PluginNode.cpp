@@ -47,7 +47,8 @@ bool PluginNode::processReceivedFrame (
     edu::sharif::partov::nse::network::SecondLayerFrame *frame,
     edu::sharif::partov::nse::map::interface::Interface *interface, bool &finalizeFrame) {
 
-  if (Node::processReceivedFrame (frame, interface, finalizeFrame)) {
+  if (edu::sharif::partov::nse::map::Node::processReceivedFrame
+      (frame, interface, finalizeFrame)) {
     return true;
   }
   pluginEngineHandleFrame (frame, interface, finalizeFrame);

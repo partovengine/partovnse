@@ -58,6 +58,7 @@ namespace plugin {
  * Tags:              None
  */
 class BitTorrentMessage {
+
 public:
   static const int MINIMUM_MESSAGE_SIZE = 8;
   static const int TYPE_TRACKER = 0;
@@ -67,27 +68,28 @@ public:
 
   quint16 torrentId;
   quint16 peerId;
-  quint8  type;
-  quint8  message;
+  quint8 type;
+  quint8 message;
   quint16 val;
 
   QHostAddress* peerAddress;
   quint16 peerPort;
 
-  BitTorrentMessage (edu::sharif::partov::nse::network::UDPPacket* udp);
+  BitTorrentMessage (edu::sharif::partov::nse::network::UDPPacket *udp);
   ~BitTorrentMessage ();
 };
 
 /**
  * Name:              BitTorrentPeer
  * Parent:            
- * Description:       Holds information for a peer actively downloadig a torrent.
+ * Description:       Holds information for a peer actively downloading a torrent.
  *
  * Package Access:    Public
  * Package:           edu.sharif.partov.nse.plugin
  * Tags:              None
  */
 class BitTorrentPeer {
+
 public:
   quint16 peerId;
   quint16 torrentId;
@@ -142,7 +144,7 @@ protected:
       edu::sharif::partov::nse::map::interface::Interface *interface,
       BitTorrentMessage &message);
 
-	virtual void processReceivedPacket (
+  virtual void processReceivedPacket (
       edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *ip,
       edu::sharif::partov::nse::map::interface::Interface *interface,
       QHostAddress &myDestinedAddress, bool &finalizeFrame);

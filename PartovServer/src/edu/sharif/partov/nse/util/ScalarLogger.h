@@ -55,6 +55,7 @@ namespace util {
  * Tags:              SingletonPerMap
  */
 class ScalarLogger : QObject {
+
 private:
   const QString logFilePath;
   QMap < QString, int > *intValues;
