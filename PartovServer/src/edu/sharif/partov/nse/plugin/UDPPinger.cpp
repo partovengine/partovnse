@@ -22,16 +22,6 @@
  *
  */
 
-
-/*
- * When running ES2.3.1 scenario, uncomment following line to enable required timeout.
- * In this scenario, we want pinger to finish sending packets at 60 seconds in simulation
- * clock. Uncommenting following line, causes an event to be scheduled for 60 seconds and
- * terminate simulation afterwards.
- */
-//#define ES2_3_1
-
-
 #include "UDPPinger.h"
 
 #include "edu/sharif/partov/nse/map/MapFactory.h"
@@ -143,7 +133,7 @@ void UDPPinger::sendPingPacket () {
   }
   // 2 bytes of data as sequence number
   udp->getLowerLayerFrame ()->getLowerLayerFrame ()->getLowerLayerFrame ()
-      ->setFrameRawDataAsInt16 (udp->getStartOfBody (), htons (sequenceNumber));
+      ->setFrameRawDataAsInt16 (udp->getStartOfBody (), htons (++sequenceNumber));
   // 8 bytes of data as time stamp
   quint64 now = edu::sharif::partov::nse::map::MapFactory::getInstance ()
       ->getMapEventScheduler ()->getCurrentClockInMicroSeconds ();

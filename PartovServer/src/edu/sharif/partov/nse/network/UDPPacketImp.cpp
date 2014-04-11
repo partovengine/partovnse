@@ -46,6 +46,7 @@ UDPPacketImp::UDPPacketImp (IPBasedThirdLayerPacket *_lowerLayerFrame,
     ReferenceCounter *_refCounter, bool initializeFields) :
 UDPPacket (_lowerLayerFrame, _refCounter), checksumEnabled (true) {
   if (!initializeFields) {
+    length = _lowerLayerFrame->getBodyLength ();
     return;
   }
   int index = lowerLayerFrame->getStartOfBody ();
@@ -76,17 +77,18 @@ void UDPPacketImp::populateToRawFrame () {
   frame->setFrameRawDataAsInt16 (index, htons (destinationPort));
   index += sizeof (quint16);
 
-  frame->setFrameRawDataAsInt16 (index, htons (getBodyLength () + HEADER_LENGTH));
+  frame->setFrameRawDataAsInt16 (index, htons (length));
   index += sizeof (quint16);
 
+  frame->setFrameRawDataAsInt16 (index, htons (0)); // fill checksum field with zero
   lowerLayerFrame->populateToRawFrame ();
 
   if (isUDPChecksumEnabled ()) {
     checkSum = calculateUDPHeaderChecksum ();
-    frame->setFrameRawDataAsInt16 (index, checkSum);
   } else {
-    frame->setFrameRawDataAsInt16 (index, 0);
+    checkSum = 0;
   }
+  frame->setFrameRawDataAsInt16 (index, checkSum);
   index += sizeof (quint16);
 }
 
@@ -140,7 +142,7 @@ int UDPPacketImp::getBodyLength () const {
 }
 
 quint16 UDPPacketImp::calculateUDPHeaderChecksum () const {
-  edu::sharif::partov::nse::network::IPBasedThirdLayerPacket *ip = lowerLayerFrame;
+  IPBasedThirdLayerPacket *ip = lowerLayerFrame;
   FirstLayerFrame *frame = ip->getLowerLayerFrame ()->getLowerLayerFrame ();
   char buff[12];
   char *pseudoHeader = buff;
@@ -155,7 +157,7 @@ quint16 UDPPacketImp::calculateUDPHeaderChecksum () const {
   i += 1;
   (*reinterpret_cast<quint8 *> (pseudoHeader + i)) = IPv4Packet::PROTOCOL_UDP;
   i += 1;
-  (*reinterpret_cast<quint16 *> (pseudoHeader + i)) = htons (ip->getBodyLength ());
+  (*reinterpret_cast<quint16 *> (pseudoHeader + i)) = htons (length);
   i += 2;
 
   return frame->calcPseudoHeaderBasedChecksum
