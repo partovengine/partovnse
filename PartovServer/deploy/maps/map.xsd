@@ -8,13 +8,6 @@
   </xs:complexType>
   <xs:element name="map" type="ptl:mapType">
     <!--
-      FSM References
-      -->
-    <xs:keyref name="fsmStateActivityDoArg0ToLinkKeyRef" refer="ptl:linkNameKey">
-      <xs:selector xpath="ptl:fsm/ptl:state/ptl:activity/ptl:do"/>
-      <xs:field xpath="@ptl:arg0"/>
-    </xs:keyref>
-    <!--
       Link References
       -->
     <!--
