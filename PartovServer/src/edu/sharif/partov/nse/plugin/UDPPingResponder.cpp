@@ -44,7 +44,7 @@ namespace plugin {
 
 UDPPingResponder::UDPPingResponder (const QString &nodeName,
     edu::sharif::partov::nse::map::Map *parent) :
-PluginNode (nodeName, parent, true, false) {
+PluginNode (nodeName, parent, true, false), udpChecksumRequired (true) {
 }
 
 UDPPingResponder::~UDPPingResponder () {
@@ -60,7 +60,7 @@ void UDPPingResponder::processReceivedPacket (
   edu::sharif::partov::nse::network::UDPPacket *udp =
       dynamic_cast<edu::sharif::partov::nse::network::UDPPacket *> (af);
 
-  if (udp && udp->isUDPHeaderChecksumValid ()) {
+  if (udp && udp->isUDPHeaderChecksumValid (!udpChecksumRequired)) {
     finalizeFrame = false;
 
     // Swap port numbers
@@ -85,6 +85,19 @@ void UDPPingResponder::processReceivedPacket (
 }
 
 bool UDPPingResponder::setParameter (const QString &paramName, const QStringList &paramValues) {
+  if (paramName == "udp-checksum-required") {
+    if (paramValues.size () != 1) {
+      return false;
+    }
+    if (paramValues[0] == "true") {
+      udpChecksumRequired = true;
+    } else if (paramValues[0] == "false") {
+      udpChecksumRequired = false;
+    } else {
+      return false;
+    }
+    return true;
+  }
   return PluginNode::setParameter (paramName, paramValues);
 }
 

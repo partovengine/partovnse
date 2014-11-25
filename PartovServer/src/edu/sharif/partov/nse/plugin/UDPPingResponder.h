@@ -47,6 +47,9 @@ namespace plugin {
 class UDPPingResponder : public PluginNode {
 
   Q_OBJECT
+private:
+  bool udpChecksumRequired;
+  
 public:
   UDPPingResponder (const QString &nodeName, edu::sharif::partov::nse::map::Map *parent);
   virtual ~UDPPingResponder ();
