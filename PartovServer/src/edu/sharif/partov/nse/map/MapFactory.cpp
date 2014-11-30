@@ -150,7 +150,8 @@ throw (MapNotFoundException *) {
     QString version = root.attribute ("version", "0");
     // TODO: This must be done within Map class
     if (root.localName () != "map"
-        || (version != Map::MAP_VERSION && version != "3.1" && version != "3.0")
+        || (version != Map::MAP_VERSION &&
+          version != "3.2" && version != "3.1" && version != "3.0")
         || root.attribute ("name") != mapFileName
         || (count = root.attribute ("count").toInt ()) <= 0) {
       throw new MapNotFoundException

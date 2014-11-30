@@ -59,7 +59,7 @@ namespace partov {
 namespace nse {
 namespace map {
 
-const char *Map::MAP_VERSION = "3.2";
+const char *Map::MAP_VERSION = "3.3";
 
 Map::Map (const QString &mapName, const QString &_logPathTemplate, int _index,
     QString _creatorId) :
@@ -119,7 +119,8 @@ bool Map::initializeMap () throw (MapFileFormatException *) {
         (root, QString ("Root tag (%1) is wrong").arg (root.localName ()));
   }
   QString version = root.attribute ("version", "0");
-  if (version != MAP_VERSION && version != "3.1" && version != "3.0") {
+  if (version != MAP_VERSION
+      && version != "3.2" && version != "3.1" && version != "3.0") {
     throw new MapFileFormatException (root, "Version number");
   }
   if (root.attribute ("name") != objectName ()

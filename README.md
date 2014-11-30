@@ -1,7 +1,7 @@
 # Partov NSE
 
 The _Partov Network Simulation Emulation (PartovNSE)_ is an engine for discrete event simulation, extensible through plugins, joining real networks via emulation, supporting realtime scheduling, and a lot more.
-Latest stable version of Partov central server is **3.2.1**.
+Latest stable version of Partov central server is **3.3.0**.
 
 ## Installation
 
