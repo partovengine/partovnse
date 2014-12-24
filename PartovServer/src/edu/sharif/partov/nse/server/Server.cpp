@@ -46,7 +46,7 @@ namespace server {
 bool Server::verbose;
 
 Server::Server () :
-shuttingDown (false) {
+    shuttingDown (false) {
   // create server in current (main) thread...
   simulators = new QList < Simulator * > ();
 }
@@ -60,6 +60,9 @@ Server::~Server () {
   foreach (Simulator *sim, *simulators) {
     sim->quit ();
     sim->wait ();
+  }
+
+  foreach (Simulator *sim, *simulators) {
     delete sim;
   }
   delete simulators;
@@ -164,7 +167,7 @@ void Server::simulatorFinished () {
       simulators->removeAt (index);
 
       simulator->wait ();
-      delete simulator;
+      simulator->finalize ();
     }
   }
 }

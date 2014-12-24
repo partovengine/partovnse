@@ -69,6 +69,7 @@ public:
   static const char *MAP_VERSION;
 
 private:
+  QMutex *lock;
   const QString logPathTemplate;
 
   int index;
@@ -80,7 +81,7 @@ private:
 
 public:
   Map (const QString &mapName, const QString &_logPathTemplate, int _index,
-      QString _creatorId);
+      QString _creatorId, QMutex *_lock);
   virtual ~Map ();
 
   Node *retrieveNodeByName (const QString &name) const throw (NoSuchMapNodeException *);
@@ -119,6 +120,8 @@ public:
   VariableManager *getVariableManager () const;
 
   edu::sharif::partov::nse::plugin::PluginScheduler *getPluginScheduler () const;
+
+  QMutex *getMapChangesNotificationMutex () const;
 };
 
 }

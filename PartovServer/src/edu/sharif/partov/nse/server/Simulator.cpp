@@ -41,6 +41,7 @@
 
 #include <QTimer>
 #include <QMutex>
+#include <QWaitCondition>
 
 namespace edu {
 namespace sharif {
@@ -49,18 +50,38 @@ namespace nse {
 namespace server {
 
 Simulator::Simulator () :
-QThread (), communicationState (NotSignedInState), simulationState (IdleState),
-shuttingDown (false), mutex (NULL), blockSize (0), map (NULL), node (NULL) {
+    QThread (), communicationState (NotSignedInState), simulationState (IdleState),
+    shuttingDown (false), mutex (NULL), cond (NULL),
+    blockSize (0), map (NULL), node (NULL) {
   // create simulator...
   moveToThread (this);
 }
 
 Simulator::~Simulator () {
-  shuttingDown = true;
-  if (mutex) {
-    delete mutex;
-  }
+  delete mutex;
   mutex = NULL;
+  delete cond;
+  cond = NULL;
+}
+
+void Simulator::finalize () {
+  { // PRE-CONDITION: This Simulator thread is already finished and wait()-ed upon.
+    QMutexLocker locker (mutex);
+    if (map) {
+      QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
+      shuttingDown = true;
+      locker.unlock ();
+      QMutexLocker changesMutexLocker (changesMutex);
+      locker.relock ();
+      disconnect ();
+      if (map == NULL) {
+        cond->wakeOne ();
+        changesMutexLocker.unlock ();
+        cond->wait (mutex);
+      }
+    }
+  }
+  delete this;
 }
 
 void Simulator::setSimulatorUserSocket (QTcpSocket *socket,
@@ -141,6 +162,7 @@ void Simulator::readMapRequestData (QDataStream & stream) {
                                socket->peerAddress (), needNewMap == -1);
     if (needNewMap == -1) {
       map->finalize ();
+      map = NULL;
       stream << (quint32) MapNodeSelectingNegotiationType
           << (quint32) MapInstanceResourcesAreReleased;
 
@@ -654,6 +676,7 @@ void Simulator::frameReceived (int interfaceIndex,
 void Simulator::run (void) {
   try {
     mutex = new QMutex ();
+    cond = new QWaitCondition ();
     if (Server::isVerbose ()) {
       qDebug ("New connection established. Reading user request...");
     }
@@ -688,13 +711,19 @@ void Simulator::displayError (QAbstractSocket::SocketError errorCode) {
 }
 
 void Simulator::mapSimulationThreadIsAboutToFinish () {
-  if (shuttingDown) {
-    return;
-  }
   QMutexLocker locker (mutex);
-
-  socket->disconnectFromHost ();
-  communicationState = DisconnectedState;
+  if (shuttingDown) {
+    QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
+    map = NULL;
+    changesMutex->unlock ();
+    cond->wait (mutex);
+    changesMutex->lock ();
+    cond->wakeOne ();
+  } else {
+    socket->disconnectFromHost ();
+    communicationState = DisconnectedState;
+    map = NULL; // map changes notification mutex is already locked
+  }
 }
 
 }

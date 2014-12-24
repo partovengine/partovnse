@@ -31,6 +31,7 @@
 #include <QTcpSocket>
 
 class QMutex;
+class QWaitCondition;
 
 namespace edu {
 namespace sharif {
@@ -137,6 +138,7 @@ private:
 
   bool shuttingDown;
   QMutex *mutex;
+  QWaitCondition *cond;
 
   quint16 blockSize;
   QTcpSocket *socket;
@@ -174,6 +176,8 @@ public:
 
   void setSimulatorUserSocket (QTcpSocket *socket,
       edu::sharif::partov::nse::usermanagement::User _user);
+
+  void finalize ();
 
 private:
   void readMapRequestData (QDataStream & stream);

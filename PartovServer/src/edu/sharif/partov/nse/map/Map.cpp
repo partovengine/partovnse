@@ -62,10 +62,10 @@ namespace map {
 const char *Map::MAP_VERSION = "3.3";
 
 Map::Map (const QString &mapName, const QString &_logPathTemplate, int _index,
-    QString _creatorId) :
-logPathTemplate (_logPathTemplate), index (_index), listManager (
-new ListManager (index)), variableManager (new VariableManager ()),
-creatorId (_creatorId), pluginScheduler (NULL) {
+    QString _creatorId, QMutex *_lock) :
+    QObject (), lock (_lock), logPathTemplate (_logPathTemplate), index (_index),
+    listManager (new ListManager (index)), variableManager (new VariableManager ()),
+    creatorId (_creatorId), pluginScheduler (NULL) {
   setObjectName (mapName);
 }
 
@@ -277,6 +277,10 @@ VariableManager *Map::getVariableManager () const {
 
 edu::sharif::partov::nse::plugin::PluginScheduler *Map::getPluginScheduler () const {
   return pluginScheduler;
+}
+
+QMutex *Map::getMapChangesNotificationMutex () const {
+  return lock;
 }
 
 }

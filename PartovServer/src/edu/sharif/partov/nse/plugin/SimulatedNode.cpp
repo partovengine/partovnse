@@ -46,7 +46,7 @@ namespace plugin {
 
 SimulatedNode::SimulatedNode (const QString &nodeName,
     edu::sharif::partov::nse::map::Map *parent, bool replyARP, bool replyICMPEcho) :
-PluginNode (nodeName, parent, replyARP, replyICMPEcho) {
+    PluginNode (nodeName, parent, replyARP, replyICMPEcho) {
   apt = All;
   available = true;
   mutex = new QMutex ();
@@ -138,6 +138,9 @@ void SimulatedNode::sendFrame (int interfaceIndex,
 void SimulatedNode::changeIPAddress (int interfaceIndex, quint32 ip) {
   try {
     PluginNode::changeIPAddress (interfaceIndex, QHostAddress (ip));
+    edu::sharif::partov::nse::map::Map *map =
+        static_cast<edu::sharif::partov::nse::map::Map *> (parent ());
+    QMutexLocker locker (map->getMapChangesNotificationMutex ());
     emit nodeIPAddressChanged (objectName (), interfaceIndex, ip); /* @@ signal emitted @@ */
 
   } catch (edu::sharif::partov::nse::map::InvalidInterfaceIndexException *e) {
@@ -148,6 +151,9 @@ void SimulatedNode::changeIPAddress (int interfaceIndex, quint32 ip) {
 void SimulatedNode::changeNetmask (int interfaceIndex, quint32 netmask) {
   try {
     PluginNode::changeNetmask (interfaceIndex, QHostAddress (netmask));
+    edu::sharif::partov::nse::map::Map *map =
+        static_cast<edu::sharif::partov::nse::map::Map *> (parent ());
+    QMutexLocker locker (map->getMapChangesNotificationMutex ());
     emit nodeNetmaskChanged (objectName (), interfaceIndex, netmask); /* @@ signal emitted @@ */
 
   } catch (edu::sharif::partov::nse::map::InvalidInterfaceIndexException *e) {

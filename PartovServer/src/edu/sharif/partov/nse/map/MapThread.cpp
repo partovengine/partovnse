@@ -57,10 +57,11 @@ namespace map {
 
 MapThread::MapThread (const QString &mapName, const QString &logPathTemplate, int index,
     QString creatorId) :
-QThread (), map (new Map (mapName, logPathTemplate, index, creatorId)),
-scalarLogFilePath (logPathTemplate.left (logPathTemplate.lastIndexOf ('/') + 1)
-+ "scalar.log"), lock (new QMutex ()), cond (new QWaitCondition ()),
-initialized (false), running (false), finalizeMapBeforeDeletion (false) {
+    QThread (), lock (new QMutex ()), cond (new QWaitCondition ()),
+    map (new Map (mapName, logPathTemplate, index, creatorId, lock)),
+    scalarLogFilePath (logPathTemplate.left (logPathTemplate.lastIndexOf ('/') + 1)
+    + "scalar.log"), initialized (false), running (false),
+    finalizeMapBeforeDeletion (false) {
   map->moveToThread (this);
 }
 
@@ -103,8 +104,10 @@ void MapThread::init () {
 }
 
 void MapThread::quit () {
+  lock->lock ();
   emit
   aboutToFinish (); /* @@ signal emitted @@ */
+  lock->unlock ();
 
   QThread::quit ();
 }

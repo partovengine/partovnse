@@ -67,11 +67,11 @@ class MapThread : public QThread {
   Q_OBJECT
 
 private:
-  Map *map;
-  const QString scalarLogFilePath;
-
   QMutex *lock;
   QWaitCondition *cond;
+
+  Map *map;
+  const QString scalarLogFilePath;
 
   bool initialized;
   bool running;
