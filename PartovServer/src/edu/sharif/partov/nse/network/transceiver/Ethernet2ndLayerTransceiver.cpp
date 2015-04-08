@@ -47,9 +47,10 @@ namespace transceiver {
 
 Ethernet2ndLayerTransceiver::Ethernet2ndLayerTransceiver (QObject *parent,
     const QMap < quint32, ARPEntry * > *_staticArpTable) :
-SecondLayerTransceiver (parent), cache (new QMap < quint32, ARPEntry * > ()),
-staticArpTable (_staticArpTable),
-frameSendingQueue (new QLinkedList < WaitingFrameEntry > ()), bytesPendingToBeSent (0) {
+    SecondLayerTransceiver (parent), cache (new QMap < quint32, ARPEntry * > ()),
+    staticArpTable (_staticArpTable),
+    arpCacheIsEnabled (true),
+    frameSendingQueue (new QLinkedList < WaitingFrameEntry > ()), bytesPendingToBeSent (0) {
   arpPacket = edu::sharif::partov::nse::network::FrameFactory::getInstance ()
       ->createIPARPPacket ();
 }
@@ -143,6 +144,9 @@ void Ethernet2ndLayerTransceiver::sendFrame (
     edu::sharif::partov::nse::map::interface::Interface *interface,
     const QHostAddress &destination) {
   quint32 ip = destination.toIPv4Address ();
+  if (!arpCacheIsEnabled) {
+    registerFrameForSending (frame, interface, ip);
+  }
   QMap < quint32, ARPEntry * >::const_iterator it = cache->find (ip);
   ARPEntry *entry;
   if (it == cache->end ()) {
@@ -164,6 +168,10 @@ void Ethernet2ndLayerTransceiver::sendFrame (
   frame->populateToRawFrame ();
   // frame->getSourceHostMACAddress ().dumpAddress ();
   interface->sendFrame (frame);
+}
+
+void Ethernet2ndLayerTransceiver::enableArpCache (bool enable) {
+  arpCacheIsEnabled = enable;
 }
 
 void Ethernet2ndLayerTransceiver::registerFrameForSending (
@@ -224,6 +232,20 @@ void Ethernet2ndLayerTransceiver::checkFrameSendingQueue (int) {
 
 void Ethernet2ndLayerTransceiver::updateCache (quint32 ip,
     const edu::sharif::partov::nse::network::address::MACAddress &mac) {
+  if (!arpCacheIsEnabled) {
+    QLinkedList < WaitingFrameEntry >::iterator it = frameSendingQueue->begin ();
+    while (it != frameSendingQueue->end ()) {
+      WaitingFrameEntry entry = *it;
+      if (ip == entry.getIPAddress ()) {
+        bytesPendingToBeSent -= entry.getFrameSize ();
+        it = frameSendingQueue->erase (it);
+        entry.sendFrame (mac);
+      } else {
+        ++it;
+      }
+    }
+    return;
+  }
   QMap < quint32, ARPEntry * >::iterator it = cache->find (ip);
   if (it == cache->end ()) {
     ARPEntry *entry = TransceiverFactory::getInstance ()->createARPEntry (mac);

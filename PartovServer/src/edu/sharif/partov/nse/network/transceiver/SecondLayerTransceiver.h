@@ -72,6 +72,14 @@ public:
       edu::sharif::partov::nse::map::interface::Interface *interface,
       const QHostAddress &destination) = 0;
 
+  /**
+   * ARP cache is enabled by default.
+   * This method can be used to disable it or to re-enable it.
+   *
+   * @param enable Indicates whether ARP cache shoulde be enabled/disabled.
+   */
+  virtual void enableArpCache (bool enable) = 0;
+
   static const int WAITING_TIME_FOR_ARP_REPLY_MSECS = 50;
 };
 

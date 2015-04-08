@@ -68,6 +68,7 @@ class Ethernet2ndLayerTransceiver : public SecondLayerTransceiver {
 private:
   QMap < quint32, ARPEntry * > *cache;
   const QMap < quint32, ARPEntry * > *staticArpTable;
+  bool arpCacheIsEnabled;
 
   QLinkedList < WaitingFrameEntry > *frameSendingQueue;
   int bytesPendingToBeSent;
@@ -86,6 +87,8 @@ public:
   virtual void sendFrame (edu::sharif::partov::nse::network::SecondLayerFrame *frame,
       edu::sharif::partov::nse::map::interface::Interface *interface,
       const QHostAddress &destination);
+
+  virtual void enableArpCache (bool enable);
 
 private:
   Q_INVOKABLE void checkFrameSendingQueue (int id = 0);
