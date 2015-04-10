@@ -146,6 +146,7 @@ void Ethernet2ndLayerTransceiver::sendFrame (
   quint32 ip = destination.toIPv4Address ();
   if (!arpCacheIsEnabled) {
     registerFrameForSending (frame, interface, ip);
+    return;
   }
   QMap < quint32, ARPEntry * >::const_iterator it = cache->find (ip);
   ARPEntry *entry;
