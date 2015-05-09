@@ -26,6 +26,8 @@
 
 #include "edu/sharif/partov/nse/fsm/ExponentiallyTimedState.h"
 
+#include "edu/sharif/partov/nse/map/Map.h"
+
 #include <QStateMachine>
 #include <QDomElement>
 
@@ -38,29 +40,32 @@ namespace builder {
 
 TransitionVisitor::TransitionVisitor (Map *_map, QStateMachine *_fsm,
     edu::sharif::partov::nse::fsm::ExponentiallyTimedState *_state) :
-    ElementVisitor (_map), fsm (_fsm), state (_state) {
+    ElementVisitor (_map), fsm (_fsm), state (_state),
+    visitAnyManualTransition (false) {
 }
 
 TransitionVisitor::~TransitionVisitor () {
 }
 
 void TransitionVisitor::processUnnamedElement (QDomElement transitionElement)
-    throw (MapFileFormatException *) {
-  readSingleTransition (transitionElement);
+throw (MapFileFormatException *) {
+  if (readSingleTransition (transitionElement) == Manual) {
+    visitAnyManualTransition = true;
+  }
 }
 
-void TransitionVisitor::readSingleTransition (const QDomElement &transitionElement) const
-    throw (MapFileFormatException *) {
+TransitionVisitor::TransitionType TransitionVisitor::readSingleTransition (
+    const QDomElement &transitionElement) const
+throw (MapFileFormatException *) {
   QString rateStr = transitionElement.attribute ("rate");
-  if (rateStr.isNull ()) {
-    throw new MapFileFormatException (transitionElement, "Missing -rate- parameter");
+  QString manualStr = transitionElement.attribute ("manual");
+  if (rateStr.isNull () && manualStr.isNull ()) {
+    throw new MapFileFormatException (transitionElement,
+                                      "Missing -rate | manual- parameters");
+  } else if (!rateStr.isNull () && !manualStr.isNull ()) {
+    throw new MapFileFormatException
+        (transitionElement, "Only one of -rate | manual- parameters can be provided");
   }
-  bool ok = false;
-  double rate = rateStr.toDouble (&ok);
-  if (!ok) {
-    throw new MapFileFormatException (transitionElement, "Malformed -rate- value");
-  }
-
   QString targetName = transitionElement.attribute ("target");
   if (targetName.isNull ()) {
     throw new MapFileFormatException (transitionElement, "Missing target parameter");
@@ -68,7 +73,38 @@ void TransitionVisitor::readSingleTransition (const QDomElement &transitionEleme
   QAbstractState *target = fsm->findChild < QAbstractState * > (targetName);
   if (!target) {
     throw new MapFileFormatException (transitionElement,
-        "Referenced target state can not be found");
+                                      "Referenced target state can not be found");
+  }
+  if (!manualStr.isNull ()) {
+    readSingleManualTransition (transitionElement, target, manualStr);
+    return Manual;
+  } else {
+    readSingleCtmcTransition (transitionElement, target, rateStr);
+    return ExponentiallyTimed;
+  }
+}
+
+void TransitionVisitor::readSingleManualTransition (const QDomElement &transitionElement,
+    QAbstractState *target, QString manualStr) const
+throw (MapFileFormatException *) {
+  if (manualStr != "true") {
+    throw new MapFileFormatException (transitionElement, "Malformed -manual- value");
+  }
+  if (visitAnyManualTransition) {
+    throw new MapFileFormatException
+        (transitionElement, "More than one manual transition per state");
+  }
+  QState *source = state;
+  source->addTransition (map, SIGNAL (walk ()), target);
+}
+
+void TransitionVisitor::readSingleCtmcTransition (const QDomElement &transitionElement,
+    QAbstractState *target, QString rateStr) const
+throw (MapFileFormatException *) {
+  bool ok = false;
+  double rate = rateStr.toDouble (&ok);
+  if (!ok) {
+    throw new MapFileFormatException (transitionElement, "Malformed -rate- value");
   }
   state->addTransition (rate, target);
 }

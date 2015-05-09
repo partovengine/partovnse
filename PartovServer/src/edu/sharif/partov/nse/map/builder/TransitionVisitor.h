@@ -29,6 +29,7 @@
 
 class QStateMachine;
 class QState;
+class QAbstractState;
 
 namespace edu {
 namespace sharif {
@@ -54,9 +55,11 @@ namespace builder {
  * Tags:              Visitor;
  */
 class TransitionVisitor : public ElementVisitor {
+
 private:
   QStateMachine *fsm;
   edu::sharif::partov::nse::fsm::ExponentiallyTimedState *state;
+  bool visitAnyManualTransition;
 
 public:
   TransitionVisitor (Map *_map, QStateMachine *_fsm,
@@ -64,11 +67,24 @@ public:
   virtual ~TransitionVisitor ();
 
   virtual void processUnnamedElement (QDomElement transitionElement)
-      throw (MapFileFormatException *);
+  throw (MapFileFormatException *);
 
 private:
-  void readSingleTransition (const QDomElement &transitionElement) const
-      throw (MapFileFormatException *);
+
+  enum TransitionType {
+
+    ExponentiallyTimed,
+    Manual
+  };
+
+  TransitionType readSingleTransition (const QDomElement &transitionElement) const
+  throw (MapFileFormatException *);
+  void readSingleManualTransition (const QDomElement &transitionElement,
+      QAbstractState *target, QString manualStr) const
+  throw (MapFileFormatException *);
+  void readSingleCtmcTransition (const QDomElement &transitionElement,
+      QAbstractState *target, QString rateStr) const
+  throw (MapFileFormatException *);
 };
 
 }

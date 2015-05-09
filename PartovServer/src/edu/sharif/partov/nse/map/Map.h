@@ -103,6 +103,7 @@ public:
 signals:
   void nodeIPAddressChanged (QString nodeName, int interfaceIndex, quint32 ip);
   void nodeNetmaskChanged (QString nodeName, int interfaceIndex, quint32 netmask);
+  void walk ();
 
 protected:
   bool initializeMap () throw (MapFileFormatException *);
