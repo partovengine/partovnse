@@ -147,6 +147,7 @@
               <xs:enumeration value="3.1"/>
               <xs:enumeration value="3.2"/>
               <xs:enumeration value="3.3"/>
+              <xs:enumeration value="3.4"/>
             </xs:restriction>
           </xs:simpleType>
         </xs:attribute>
@@ -310,7 +311,14 @@
               <xs:sequence>
                 <xs:element name="transition" minOccurs="1" maxOccurs="unbounded">
                   <xs:complexType>
-                    <xs:attribute name="rate" use="required" type="xs:double"/>
+                    <xs:attribute name="rate" use="optional" type="xs:double"/>
+                    <xs:attribute name="manual" use="optional">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:enumeration value="true"/>
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:attribute>
                     <xs:attribute name="target" use="required" type="xs:string"/>
                   </xs:complexType>
                 </xs:element>
