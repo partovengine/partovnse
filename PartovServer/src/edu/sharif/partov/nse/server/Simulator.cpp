@@ -319,7 +319,7 @@ void Simulator::nodeIPAddressChanged (QString nodeName, int interfaceIndex, quin
     return;
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_6);
+  stream.setVersion (QDataStream::Qt_4_8);
 
   stream << static_cast<quint32> (ChangeEventNotificationType)
       << static_cast<quint32> (IPAddressChangedNotificationSubType);
@@ -338,7 +338,7 @@ void Simulator::nodeNetmaskChanged (QString nodeName, int interfaceIndex,
     return;
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_6);
+  stream.setVersion (QDataStream::Qt_4_8);
 
   stream << static_cast<quint32> (ChangeEventNotificationType)
       << static_cast<quint32> (NetmaskChangedNotificationSubType);
@@ -594,7 +594,7 @@ void Simulator::notifyUserAboutInvalidInterfaceIndex (
     return;
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_6);
+  stream.setVersion (QDataStream::Qt_4_8);
 
   stream << (quint32) InvalidInterfaceIndexType;
   const QString &desc = e->getExceptionDescription ();
@@ -613,7 +613,7 @@ void Simulator::readData () {
   QMutexLocker locker (mutex);
 
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_6);
+  stream.setVersion (QDataStream::Qt_4_8);
 
   switch (communicationState) {
   case DisconnectedState:
@@ -655,7 +655,7 @@ void Simulator::frameReceived (int interfaceIndex,
   }
   QByteArray block;
   QDataStream out (&block, QIODevice::WriteOnly);
-  out.setVersion (QDataStream::Qt_4_6);
+  out.setVersion (QDataStream::Qt_4_8);
 
   out << (quint16) 0;
   out << (quint32) interfaceIndex;
@@ -665,7 +665,7 @@ void Simulator::frameReceived (int interfaceIndex,
   out << (quint16) (block.size () - sizeof (quint16));
 
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_6);
+  stream.setVersion (QDataStream::Qt_4_8);
 
   stream << (quint32) RawFrameReceivedNotificationType;
   stream.writeRawData (block.constData (), block.size ());
@@ -690,7 +690,7 @@ void Simulator::run (void) {
 
     {
       QDataStream stream (socket);
-      stream.setVersion (QDataStream::Qt_4_6);
+      stream.setVersion (QDataStream::Qt_4_8);
 
       stream << (quint32) SigningInNegotiationType << (quint32) 1;
       communicationState = JustSignedInState;

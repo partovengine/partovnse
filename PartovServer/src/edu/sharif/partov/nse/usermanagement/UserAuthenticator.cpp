@@ -35,7 +35,7 @@ namespace nse {
 namespace usermanagement {
 
 UserAuthenticator::UserAuthenticator (QTcpSocket *_socket) :
-socket (_socket), blockSize (0) {
+    socket (_socket), blockSize (0) {
 }
 
 UserAuthenticator::~UserAuthenticator () {
@@ -93,7 +93,7 @@ int UserAuthenticator::realAuthenticating () {
     qDebug () << "Signing in ...";
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_6);
+  stream.setVersion (QDataStream::Qt_4_8);
   if (blockSize == 0) {
     if (socket->bytesAvailable () < (int) sizeof (quint16)) {
       return 0;
