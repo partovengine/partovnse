@@ -238,6 +238,9 @@ bool SimulatedNode::acquireNode (const QThread *owner) {
       && connect (owner, SIGNAL (changeNetmask (int, quint32)), this,
                   SLOT (changeNetmask (int, quint32)), Qt::BlockingQueuedConnection);
   signalSlotsConnectionSucceeds = signalSlotsConnectionSucceeds
+      && connect (owner, SIGNAL (walkOnFsm ()), parent (),
+                  SIGNAL (walk ()), Qt::BlockingQueuedConnection);
+  signalSlotsConnectionSucceeds = signalSlotsConnectionSucceeds
       && connect
       (this, SIGNAL (notifyUserAboutInvalidInterfaceIndex (edu::sharif::partov::nse::map::InvalidInterfaceIndexException *)),
        owner, SLOT (notifyUserAboutInvalidInterfaceIndex (edu::sharif::partov::nse::map::InvalidInterfaceIndexException *)),

@@ -500,6 +500,10 @@ void Simulator::readSimulationData (QDataStream &stream) {
     case ChangeNetmaskCommand:
       simulationState = ChangingNetmaskState;
       break;
+
+    case WalkOnFiniteStateMachineCommand:
+      emit walkOnFsm (); /* @@ signal emitted @@ */
+      return;
     }
   }
   switch (simulationState) {

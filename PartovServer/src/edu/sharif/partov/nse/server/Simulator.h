@@ -113,7 +113,8 @@ public:
     SendFrameCommand = 1,
     ChangeIPAddressCommand = 2,
     ChangeNetmaskCommand = 3,
-    StateQueryCommand = 4
+    StateQueryCommand = 4,
+    WalkOnFiniteStateMachineCommand = 5
   };
 
   enum CommunicationState {
@@ -162,6 +163,7 @@ protected slots:
   void nodeNetmaskChanged (QString nodeName, int interfaceIndex, quint32 netmask);
 
 signals:
+  void walkOnFsm ();
   void sendFrame (int interfaceIndex,
       edu::sharif::partov::nse::network::SecondLayerFrame *frame);
   void changeIPAddress (int interfaceIndex, quint32 ip);
