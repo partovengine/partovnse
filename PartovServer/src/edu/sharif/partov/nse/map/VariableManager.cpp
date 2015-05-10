@@ -41,7 +41,7 @@ bool VariableManager::readUnnamedElement (const QDomElement &element,
     const edu::sharif::partov::nse::map::builder::MapReader *reader,
     const char *tagName[],
     edu::sharif::partov::nse::map::builder::ElementVisitor *visitor[], int visitorsCount)
-        throw (MapFileFormatException *) {
+throw (MapFileFormatException *) {
   if (repetitionIndex < 0) { // look for repeat
     if (element.localName () == "repeat") {
       QString countStr = element.attribute ("count");
@@ -69,7 +69,7 @@ bool VariableManager::readNamedElement (const QDomElement &element,
     const char *tagName[],
     edu::sharif::partov::nse::map::builder::NamedElementVisitor *visitor[],
     int visitorsCount, bool raiseExceptionOnUnkownTags, int &unknownTagsCount)
-        throw (MapFileFormatException *) {
+throw (MapFileFormatException *) {
   if (repetitionIndex < 0) { // look for repeat
     if (element.localName () == "repeat") {
       QString countStr = element.attribute ("count");
@@ -81,9 +81,14 @@ bool VariableManager::readNamedElement (const QDomElement &element,
       if (!ok || count < 1) {
         throw new MapFileFormatException (element, "Malformed repeat's count parameter");
       }
+      bool first = true;
       for (repetitionIndex = 0; repetitionIndex < count; ++repetitionIndex) {
-        unknownTagsCount += reader->readNamedElements (element, tagName, visitor,
-            visitorsCount, raiseExceptionOnUnkownTags);
+        const int mismatchTags = reader->readNamedElements
+            (element, tagName, visitor, visitorsCount, raiseExceptionOnUnkownTags);
+        if (first) {
+          unknownTagsCount += mismatchTags;
+          first = false;
+        }
       }
       repetitionIndex = -1;
       return true;
@@ -99,6 +104,19 @@ QString VariableManager::resolveName (QString name) const throw () {
   } else {
     return QString ("%1-%2").arg (name).arg (repetitionIndex);
   }
+}
+
+QString VariableManager::deresolveName (QString name) const throw () {
+  if (repetitionIndex < 0) {
+    // name was not resolved at all and so no deresolution is needed
+    return name;
+  }
+  const QString suffix = QString ("-%2").arg (repetitionIndex);
+  if (!name.endsWith (suffix)) {
+    return name;
+  }
+  name.chop (suffix.length ());
+  return name;
 }
 
 }

@@ -70,7 +70,8 @@ class MapReader;
  * Tags:              None
  */
 class VariableManager : public QObject {
-Q_OBJECT
+
+  Q_OBJECT
 
 private:
   int repetitionIndex;
@@ -89,9 +90,10 @@ public:
       const char *tagName[],
       edu::sharif::partov::nse::map::builder::NamedElementVisitor *visitor[],
       int visitorsCount, bool raiseExceptionOnUnkownTags, int &unknownTagsCount)
-          throw (MapFileFormatException *);
+  throw (MapFileFormatException *);
 
   QString resolveName (QString name) const throw ();
+  QString deresolveName (QString name) const throw ();
 
   template < typename Type >
   bool checkForVariableChild (Map *map, const QDomElement &element, Type &t,

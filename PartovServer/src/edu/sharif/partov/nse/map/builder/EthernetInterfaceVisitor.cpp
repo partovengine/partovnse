@@ -55,81 +55,102 @@ EthernetInterfaceVisitor::~EthernetInterfaceVisitor () {
 edu::sharif::partov::nse::map::interface::Interface *EthernetInterfaceVisitor::instantiateInterface (
     const edu::sharif::partov::nse::network::address::EthernetMACAddress &mac,
     const QHostAddress &ip, const QHostAddress &mask) const {
-  return new edu::sharif::partov::nse::map::interface::EthernetInterface (mac, mapNode,
-      ip, mask);
+  return new edu::sharif::partov::nse::map::interface::EthernetInterface
+      (mac, mapNode, ip, mask);
 }
 
 edu::sharif::partov::nse::map::interface::Interface *EthernetInterfaceVisitor::instantiateInterface (
     const edu::sharif::partov::nse::network::address::EthernetMACAddress &mac,
     QList < const edu::sharif::partov::nse::network::address::MACAddress * > multicastMacs,
     const QHostAddress &ip, const QHostAddress &mask) const {
-  return new edu::sharif::partov::nse::map::interface::EthernetInterface (
-      mac,
-      multicastMacs
-          << new edu::sharif::partov::nse::network::address::EthernetMACAddress (mac),
-      mapNode, ip, mask);
+  return new edu::sharif::partov::nse::map::interface::EthernetInterface
+      (mac, multicastMacs
+       << new edu::sharif::partov::nse::network::address::EthernetMACAddress (mac),
+       mapNode, ip, mask);
 }
 
-int EthernetInterfaceVisitor::parseInterfaceConnectedLinks (QDomElement interface,
+QPair<int, int> EthernetInterfaceVisitor::parseInterfaceConnectedLinks (
+    QDomElement interface,
     edu::sharif::partov::nse::map::interface::Interface *iface) const
-        throw (MapFileFormatException *) {
+throw (MapFileFormatException *) {
+  int count = interface.elementsByTagName ("connected-to-link").size ();
+
+  QDomNodeList repeatTags = interface.elementsByTagName ("repeat");
+  int allChildrenCount = interface.childNodes ().size () - repeatTags.size ();
+  for (int i = 0; i < repeatTags.count (); ++i) {
+    QDomElement repeat = repeatTags.at (i).toElement ();
+    QString countStr = repeat.attribute ("count");
+    if (countStr.isNull ()) {
+      throw new MapFileFormatException (repeat, "Missing repeat's count parameter");
+    }
+    bool ok;
+    int repeatCount = countStr.toInt (&ok);
+    if (!ok || repeatCount < 1) {
+      throw new MapFileFormatException (repeat, "Malformed repeat's count parameter");
+    }
+    allChildrenCount += repeat.childNodes ().size ();
+    count += repeat.elementsByTagName ("connected-to-link").size () * repeatCount;
+  }
+
   class ConnectedLinkVisitor : public NamedElementVisitor {
-  private:
+
+   private:
     edu::sharif::partov::nse::map::interface::Interface *iface;
     int remainingConnectedLinksTags;
 
-  public:
+   public:
+
     ConnectedLinkVisitor (Map *_map,
         edu::sharif::partov::nse::map::interface::Interface *_iface,
         int _countOfConnectedLinksTags) :
         NamedElementVisitor (_map), iface (_iface), remainingConnectedLinksTags (
-            _countOfConnectedLinksTags) {
+        _countOfConnectedLinksTags) {
     }
 
     virtual void processNamedElement (QString linkName, QDomElement connectedToLinkTag)
-        throw (MapFileFormatException *) {
+    throw (MapFileFormatException *) {
       QString running = connectedToLinkTag.attribute ("running", "false");
       if (running == "true") {
-        linkName = map->getVariableManager ()->resolveName (linkName);
+        // variable manager already replaced the name and so no more change is needed
       } else if (running == "false") {
-        // default case; no change is required for name
+        linkName = map->getVariableManager ()->deresolveName (linkName);
       } else {
-        throw new MapFileFormatException (connectedToLinkTag,
-            "Malformed connected-to-link tag's running attribute");
+        throw new MapFileFormatException
+            (connectedToLinkTag, "Malformed connected-to-link tag's running attribute");
       }
-      edu::sharif::partov::nse::map::link::Link *link = map->findChild <
-          edu::sharif::partov::nse::map::link::Link * > (linkName);
+      edu::sharif::partov::nse::map::link::Link *link =
+          map->findChild < edu::sharif::partov::nse::map::link::Link * > (linkName);
       if (!link) {
-        throw new MapFileFormatException (connectedToLinkTag,
-            "Referenced link can not be found");
+        throw new MapFileFormatException
+            (connectedToLinkTag, "Referenced link can not be found");
       }
       if (--remainingConnectedLinksTags) {
         if (!link->connectToInterfaceWithoutOwnershipTransfer (iface)) {
-          throw new MapFileFormatException (connectedToLinkTag,
-              "Can not make interface-to-link connection");
+          throw new MapFileFormatException
+              (connectedToLinkTag, "Can not make interface-to-link connection");
         }
       } else {
         if (!link->connectToInterface (iface)) {
-          throw new MapFileFormatException (connectedToLinkTag,
-              "Can not make interface-to-link connection");
+          throw new MapFileFormatException
+              (connectedToLinkTag, "Can not make interface-to-link connection");
         }
       }
     }
-  } visitor (map, iface, interface.elementsByTagName ("connected-to-link").size ());
-  const int allChildrenCount = interface.childNodes ().size ();
+  } visitor (map, iface, count);
 
-  return allChildrenCount
-      - MapReader ().readNamedElements (interface, "connected-to-link", &visitor, false);
+  return qMakePair
+      (allChildrenCount,
+       allChildrenCount - MapReader (map->getVariableManager ())
+       .readNamedElements (interface, "connected-to-link", &visitor, false));
 }
 
 void EthernetInterfaceVisitor::processUnnamedElement (QDomElement interface)
-    throw (MapFileFormatException *) {
-  const int allChildrenCount = interface.childNodes ().size ();
-
+throw (MapFileFormatException *) {
   edu::sharif::partov::nse::map::interface::Interface *iface;
   int validChildrenCount = parseInterface (interface, iface);
-
-  int validConnectedLinksCount = parseInterfaceConnectedLinks (interface, iface);
+  QPair<int, int> allAndClc = parseInterfaceConnectedLinks (interface, iface);
+  const int allChildrenCount = allAndClc.first;
+  const int validConnectedLinksCount = allAndClc.second;
   if (validConnectedLinksCount <= 0) {
     throw new MapFileFormatException (interface, "Missing connected-to-link tag");
   }

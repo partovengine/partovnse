@@ -45,7 +45,7 @@
       Interface References
       -->
     <xs:keyref name="interfaceConnectedToLinkKeyRef" refer="ptl:linkNameKey">
-      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:connected-to-link | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:connected-to-link | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:connected-to-link"/>
+      <xs:selector xpath="ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:connected-to-link | ptl:nodes/ptl:*/ptl:interfaces/ptl:*/ptl:repeat/ptl:connected-to-link | ptl:nodes/ptl:*/ptl:interfaces/ptl:repeat/ptl:*/ptl:connected-to-link | ptl:nodes/ptl:repeat/ptl:*/ptl:interfaces/ptl:*/ptl:connected-to-link"/>
       <xs:field xpath="@ptl:name"/>
     </xs:keyref>
     <!--
@@ -618,20 +618,27 @@
     </xs:sequence>
     <xs:attribute ref="ptl:log" use="optional"/>
   </xs:complexType>
+  <xs:complexType name="ethernetInterfaceConnectedToLinkType">
+    <xs:complexContent>
+      <xs:extension base="ptl:namedElement">
+        <xs:attribute name="running" type="ptl:myBoolean" use="optional" default="false"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="ethernetInterfaceType">
     <xs:complexContent>
       <xs:extension base="ptl:interfaceType">
-        <xs:sequence>
-          <xs:element name="connected-to-link" minOccurs="1" maxOccurs="unbounded">
+        <xs:choice minOccurs="1" maxOccurs="unbounded">
+          <xs:element name="connected-to-link" type="ptl:ethernetInterfaceConnectedToLinkType"/>
+          <xs:element name="repeat">
             <xs:complexType>
-              <xs:complexContent>
-                <xs:extension base="ptl:namedElement">
-                  <xs:attribute name="running" type="ptl:myBoolean" use="optional" default="false"/>
-                </xs:extension>
-              </xs:complexContent>
+              <xs:sequence>
+                <xs:element name="connected-to-link" minOccurs="1" maxOccurs="unbounded" type="ptl:ethernetInterfaceConnectedToLinkType"/>
+              </xs:sequence>
+              <xs:attribute name="count" type="xs:positiveInteger" use="required"/>
             </xs:complexType>
           </xs:element>
-        </xs:sequence>
+        </xs:choice>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

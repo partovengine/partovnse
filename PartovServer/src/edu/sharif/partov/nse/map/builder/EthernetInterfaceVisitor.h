@@ -53,12 +53,13 @@ namespace builder {
  * Tags:              Visitor;
  */
 class EthernetInterfaceVisitor : public InterfaceVisitor {
+
 public:
   EthernetInterfaceVisitor (Map *_map, Node *_mapNode, QString _logPathTemplate);
   virtual ~EthernetInterfaceVisitor ();
 
   virtual void processUnnamedElement (QDomElement interface)
-      throw (MapFileFormatException *);
+  throw (MapFileFormatException *);
 
 protected:
   virtual edu::sharif::partov::nse::map::interface::Interface *instantiateInterface (
@@ -73,9 +74,9 @@ private:
   /**
    * @return count of children which were valid and are parsed.
    */
-  virtual int parseInterfaceConnectedLinks (QDomElement interface,
+  QPair<int, int> parseInterfaceConnectedLinks (QDomElement interface,
       edu::sharif::partov::nse::map::interface::Interface *iface) const
-          throw (MapFileFormatException *);
+  throw (MapFileFormatException *);
 };
 
 }
