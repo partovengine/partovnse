@@ -516,6 +516,11 @@ void Simulator::readSimulationData (QDataStream &stream) {
         return;
       }
       stream >> blockSize;
+      if (blockSize <= sizeof (quint32)) {
+        socket->disconnectFromHost ();
+        communicationState = DisconnectedState;
+        return;
+      }
     }
     if (socket->bytesAvailable () < blockSize) {
       return;
