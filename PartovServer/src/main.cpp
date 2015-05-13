@@ -44,6 +44,7 @@
 
 #include "edu/sharif/partov/nse/util/PacketLoggerFactory.h"
 #include "edu/sharif/partov/nse/util/SignalHandler.h"
+#include "edu/sharif/partov/nse/util/MessageLogger.h"
 
 using namespace std;
 
@@ -57,7 +58,10 @@ int main (int argc, char *argv[]) {
 
   edu::sharif::partov::nse::server::Server::loadGlobalSettings ();
 
+  qInstallMessageHandler (edu::sharif::partov::nse::util::myMessageHandler);
+
   if (!edu::sharif::partov::nse::usermanagement::Database::init ()) {
+    qFatal ("Cannot connect to database");
     return -10;
   }
   edu::sharif::partov::nse::network::FrameFactory::init
@@ -83,7 +87,7 @@ int main (int argc, char *argv[]) {
     return -70;
   }
   if (!QObject::connect (edu::sharif::partov::nse::util::SignalHandler::getInstance (),
-                         SIGNAL (interruptSignalTriggered ()), &app, SLOT (quit ()))) {
+      SIGNAL (interruptSignalTriggered ()), &app, SLOT (quit ()))) {
     return -80;
   }
 
