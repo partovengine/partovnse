@@ -62,7 +62,7 @@ PacketLoggerFactory::~PacketLoggerFactory () {
 PacketLogger PacketLoggerFactory::createPacketLogger (QString logPathTemplate,
     QString subject) const {
   QString path = logPathTemplate.arg (subject);
-  return PacketLogger (pcap_dump_open (adapter, path.toAscii ().constData ()));
+  return PacketLogger (pcap_dump_open (adapter, qPrintable (path)));
 }
 
 bool PacketLoggerFactory::init () {

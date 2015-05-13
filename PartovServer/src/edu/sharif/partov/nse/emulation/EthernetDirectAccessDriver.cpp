@@ -225,7 +225,7 @@ void EthernetDirectAccessDriver::stopProcessingPackets (NetworkAdapter handle) {
 
 NetworkAdapter EthernetDirectAccessDriver::open (const QString &deviceName)
 throw (edu::sharif::partov::nse::network::IOException *) {
-  return open (deviceName.toAscii ().constData ());
+  return open (qPrintable (deviceName));
 }
 
 NetworkAdapter EthernetDirectAccessDriver::open (const char *deviceName)

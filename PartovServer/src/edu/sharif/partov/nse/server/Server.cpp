@@ -150,7 +150,7 @@ void Server::userAuthenticated (QTcpSocket *socket,
 
 void Server::authenticationFailed (QTcpSocket *socket) {
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_8);
+  stream.setVersion (QDataStream::Qt_5_4);
 
   stream << (quint32) Simulator::SigningInNegotiationType << (quint32) 0;
   socket->disconnectFromHost ();

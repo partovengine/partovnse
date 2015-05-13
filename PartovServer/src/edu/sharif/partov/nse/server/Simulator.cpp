@@ -132,7 +132,7 @@ void Simulator::readMapRequestData (QDataStream & stream) {
     communicationState = DisconnectedState;
     return;
   }
-  QString mapFileName = QString::fromAscii (mapFileNameStr, size - 1);
+  QString mapFileName = QString::fromLocal8Bit (mapFileNameStr, size - 1);
   delete[] mapFileNameStr;
   stream >> size;
   if (size < 1) {
@@ -148,7 +148,7 @@ void Simulator::readMapRequestData (QDataStream & stream) {
     communicationState = DisconnectedState;
     return;
   }
-  QString creatorId = QString::fromAscii (creatorIdStr, size - 1);
+  QString creatorId = QString::fromLocal8Bit (creatorIdStr, size - 1);
   delete[] creatorIdStr;
   qint32 needNewMap;
   stream >> needNewMap;
@@ -232,7 +232,7 @@ void Simulator::readNodeRequestData (QDataStream & stream) {
     communicationState = DisconnectedState;
     return;
   }
-  QString nodeName = QString::fromAscii (nodeNameStr, blockSize - 1);
+  QString nodeName = QString::fromLocal8Bit (nodeNameStr, blockSize - 1);
   delete[] nodeNameStr;
   blockSize = 0;
   try {
@@ -296,7 +296,7 @@ void Simulator::readNodeInformationRequestData (QDataStream & stream) {
     const QString &ci = node->getCustomInformation ();
     int size = ci.length () + 1;
     stream << static_cast<quint16> (size);
-    stream.writeRawData (ci.toAscii ().constData (), size);
+    stream.writeRawData (qPrintable (ci), size);
   }
     break;
 
@@ -319,14 +319,14 @@ void Simulator::nodeIPAddressChanged (QString nodeName, int interfaceIndex, quin
     return;
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_8);
+  stream.setVersion (QDataStream::Qt_5_4);
 
   stream << static_cast<quint32> (ChangeEventNotificationType)
       << static_cast<quint32> (IPAddressChangedNotificationSubType);
 
   int size = nodeName.length () + 1; // +1 is for the last null character
   stream << static_cast<quint16> (size);
-  stream.writeRawData (nodeName.toAscii ().constData (), size);
+  stream.writeRawData (qPrintable (nodeName), size);
 
   stream << static_cast<quint32> (interfaceIndex) << static_cast<quint32> (ip);
 }
@@ -338,14 +338,14 @@ void Simulator::nodeNetmaskChanged (QString nodeName, int interfaceIndex,
     return;
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_8);
+  stream.setVersion (QDataStream::Qt_5_4);
 
   stream << static_cast<quint32> (ChangeEventNotificationType)
       << static_cast<quint32> (NetmaskChangedNotificationSubType);
 
   int size = nodeName.length () + 1; // +1 is for the last null character
   stream << static_cast<quint16> (size);
-  stream.writeRawData (nodeName.toAscii ().constData (), size);
+  stream.writeRawData (qPrintable (nodeName), size);
 
   stream << static_cast<quint32> (interfaceIndex) << static_cast<quint32> (netmask);
 }
@@ -402,7 +402,7 @@ void Simulator::readObservingData (QDataStream &stream) {
       communicationState = DisconnectedState;
       return;
     }
-    QString nodeName = QString::fromAscii (nodeNameStr, nodeNameSize - 1);
+    QString nodeName = QString::fromLocal8Bit (nodeNameStr, nodeNameSize - 1);
     delete[] nodeNameStr;
     blockSize = 0;
     try {
@@ -437,7 +437,7 @@ void Simulator::readObservingData (QDataStream &stream) {
           const QString &ci = node->getCustomInformation ();
           int size = ci.length () + 1;
           stream << static_cast<quint16> (size);
-          stream.writeRawData (ci.toAscii ().constData (), size);
+          stream.writeRawData (qPrintable (ci), size);
         }
           break;
 
@@ -603,13 +603,13 @@ void Simulator::notifyUserAboutInvalidInterfaceIndex (
     return;
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_8);
+  stream.setVersion (QDataStream::Qt_5_4);
 
   stream << (quint32) InvalidInterfaceIndexType;
   const QString &desc = e->getExceptionDescription ();
   int size = desc.length () + 1;
   stream << static_cast<quint16> (size);
-  stream.writeRawData (desc.toAscii ().constData (), size);
+  stream.writeRawData (qPrintable (desc), size);
   delete e;
 }
 
@@ -622,7 +622,7 @@ void Simulator::readData () {
   QMutexLocker locker (mutex);
 
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_8);
+  stream.setVersion (QDataStream::Qt_5_4);
 
   switch (communicationState) {
   case DisconnectedState:
@@ -664,7 +664,7 @@ void Simulator::frameReceived (int interfaceIndex,
   }
   QByteArray block;
   QDataStream out (&block, QIODevice::WriteOnly);
-  out.setVersion (QDataStream::Qt_4_8);
+  out.setVersion (QDataStream::Qt_5_4);
 
   out << (quint16) 0;
   out << (quint32) interfaceIndex;
@@ -674,7 +674,7 @@ void Simulator::frameReceived (int interfaceIndex,
   out << (quint16) (block.size () - sizeof (quint16));
 
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_8);
+  stream.setVersion (QDataStream::Qt_5_4);
 
   stream << (quint32) RawFrameReceivedNotificationType;
   stream.writeRawData (block.constData (), block.size ());
@@ -699,7 +699,7 @@ void Simulator::run (void) {
 
     {
       QDataStream stream (socket);
-      stream.setVersion (QDataStream::Qt_4_8);
+      stream.setVersion (QDataStream::Qt_5_4);
 
       stream << (quint32) SigningInNegotiationType << (quint32) 1;
       communicationState = JustSignedInState;

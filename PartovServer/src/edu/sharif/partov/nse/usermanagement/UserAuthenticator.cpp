@@ -93,7 +93,7 @@ int UserAuthenticator::realAuthenticating () {
     qDebug () << "Signing in ...";
   }
   QDataStream stream (socket);
-  stream.setVersion (QDataStream::Qt_4_8);
+  stream.setVersion (QDataStream::Qt_5_4);
   if (blockSize == 0) {
     if (socket->bytesAvailable () < (int) sizeof (quint16)) {
       return 0;
@@ -116,7 +116,7 @@ int UserAuthenticator::realAuthenticating () {
     // Qt magical bug !!! Of course never occur :D
     return -1;
   }
-  QString userName = QString::fromAscii (userNameStr, size - 1);
+  QString userName = QString::fromLocal8Bit (userNameStr, size - 1);
   delete[] userNameStr;
   blockSize -= sizeof (quint16) + size;
 
@@ -131,7 +131,7 @@ int UserAuthenticator::realAuthenticating () {
     // Qt magical bug !!! Of course never occur :D
     return -1;
   }
-  QString password = QString::fromAscii (passwordStr, size - 1);
+  QString password = QString::fromLocal8Bit (passwordStr, size - 1);
   delete[] passwordStr;
   blockSize = 0;
 

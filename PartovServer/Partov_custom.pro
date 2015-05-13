@@ -9,8 +9,8 @@ CONFIG += debug warn_on thread console
 QT += network xml xmlpatterns sql
 QT -= gui
 
-QMAKE_CXXFLAGS += -rdynamic
-QMAKE_LFLAGS += -rdynamic
+QMAKE_CXXFLAGS += -rdynamic -fPIC
+QMAKE_LFLAGS += -rdynamic -fPIC
 
 DESTDIR = deploy/bin
 

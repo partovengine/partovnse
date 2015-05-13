@@ -55,8 +55,8 @@ EthernetMACAddress::EthernetMACAddress (const QString &address) {
     if (i < 5 && address[3 * i + 2] != ':') {
       return; // error; set mac address as null
     }
-    const char c0 = address[3 * i + 0].toAscii ();
-    const char c1 = address[3 * i + 1].toAscii ();
+    const char c0 = address[3 * i + 0].toLatin1 ();
+    const char c1 = address[3 * i + 1].toLatin1 ();
     const int a = hexDigitToDecimalValue (c0);
     if (a < 0 || a > 15) {
       return; // error; set mac address as null
