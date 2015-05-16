@@ -2,24 +2,24 @@
 /**
  * Partov is a simulation engine, supporting emulation as well,
  * making it possible to create virtual networks.
- *  
+ *
  * Copyright © 2009-2014 Behnam Momeni.
- * 
+ *
  * This file is part of the Partov.
- * 
+ *
  * Partov is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Partov is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Partov.  If not, see <http://www.gnu.org/licenses/>.
- *  
+ *
  */
 
 #include "MapThread.h"
@@ -40,12 +40,13 @@
 #include "edu/sharif/partov/nse/plugin/PluginScheduler.h"
 
 #include "edu/sharif/partov/nse/util/ScalarLogger.h"
+#include "edu/sharif/partov/nse/util/NonBlockingLocker.h"
 
 #include <QDomDocument>
 #include <QFile>
 #include <QMap>
 #include <QMutex>
-#include <QWaitCondition>
+#include <QSemaphore>
 
 #include <QStateMachine>
 
@@ -57,11 +58,11 @@ namespace map {
 
 MapThread::MapThread (const QString &mapName, const QString &logPathTemplate, int index,
     QString creatorId) :
-    QThread (), lock (new QMutex ()), cond (new QWaitCondition ()),
-    map (new Map (mapName, logPathTemplate, index, creatorId, lock)),
-    scalarLogFilePath (logPathTemplate.left (logPathTemplate.lastIndexOf ('/') + 1)
-    + "scalar.log"), initialized (false), running (false),
-    finalizeMapBeforeDeletion (false) {
+QThread (), lock (new QMutex ()), cond (new QSemaphore (0)),
+map (new Map (mapName, logPathTemplate, index, creatorId, lock)),
+scalarLogFilePath (logPathTemplate.left (logPathTemplate.lastIndexOf ('/') + 1)
++ "scalar.log"), running (false),
+finalizeMapBeforeDeletion (false) {
   map->moveToThread (this);
 }
 
@@ -71,21 +72,13 @@ MapThread::~MapThread () {
 }
 
 bool MapThread::waitForInitialization () {
-  lock->lock ();
-  while (!initialized) {
-    cond->wait (lock);
-  }
-  lock->unlock ();
+  edu::sharif::partov::nse::util::NonBlockingLocker waitCondition (cond);
   return running;
 }
 
 void MapThread::run () {
   running = map->setup ();
-
-  lock->lock ();
-  initialized = true;
-  lock->unlock ();
-  cond->wakeAll ();
+  cond->release ();
 
   if (running) {
     MapFactory::getInstance ()->installMapScalarLogger

@@ -2,24 +2,24 @@
 /**
  * Partov is a simulation engine, supporting emulation as well,
  * making it possible to create virtual networks.
- *  
+ *
  * Copyright © 2009-2014 Behnam Momeni.
- * 
+ *
  * This file is part of the Partov.
- * 
+ *
  * Partov is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Partov is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Partov.  If not, see <http://www.gnu.org/licenses/>.
- *  
+ *
  */
 
 #include "Simulator.h"
@@ -39,9 +39,11 @@
 #include "edu/sharif/partov/nse/network/IOException.h"
 #include "edu/sharif/partov/nse/network/Frame.h"
 
+#include "edu/sharif/partov/nse/util/NonBlockingLocker.h"
+
 #include <QTimer>
 #include <QMutex>
-#include <QWaitCondition>
+#include <QSemaphore>
 
 namespace edu {
 namespace sharif {
@@ -50,9 +52,9 @@ namespace nse {
 namespace server {
 
 Simulator::Simulator () :
-    QThread (), communicationState (NotSignedInState), simulationState (IdleState),
-    shuttingDown (false), mutex (NULL), cond (NULL),
-    blockSize (0), map (NULL), node (NULL) {
+QThread (), communicationState (NotSignedInState), simulationState (IdleState),
+shuttingDown (false), mutex (NULL), semaphore (NULL),
+blockSize (0), map (NULL), node (NULL) {
   // create simulator...
   moveToThread (this);
 }
@@ -60,28 +62,34 @@ Simulator::Simulator () :
 Simulator::~Simulator () {
   delete mutex;
   mutex = NULL;
-  delete cond;
-  cond = NULL;
+  delete semaphore;
+  semaphore = NULL;
 }
 
 void Simulator::finalize () {
   { // PRE-CONDITION: This Simulator thread is already finished and wait()-ed upon.
-    QMutexLocker locker (mutex);
+    edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+    if (!locker.isLocked ()) {
+      QTimer::singleShot (0, this, SLOT (finalize ()));
+      return;
+    }
+    shuttingDown = true;
     if (map) {
       QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
-      shuttingDown = true;
       locker.unlock ();
-      QMutexLocker changesMutexLocker (changesMutex);
-      locker.relock ();
+      edu::sharif::partov::nse::util::NonBlockingLocker changesMutexLocker (changesMutex);
+      locker.relock (true);
       disconnect ();
       if (map == NULL) {
-        cond->wakeOne ();
+        semaphore->release ();
         changesMutexLocker.unlock ();
-        cond->wait (mutex);
+        locker.unlock ();
+        edu::sharif::partov::nse::util::NonBlockingLocker waitCondition (semaphore, 2);
+        locker.relock (true);
       }
     }
   }
-  delete this;
+  deleteLater ();
 }
 
 void Simulator::setSimulatorUserSocket (QTcpSocket *socket,
@@ -117,42 +125,58 @@ void Simulator::readMapRequestData (QDataStream & stream) {
   if (socket->bytesAvailable () < blockSize) {
     return;
   }
-  quint16 size;
-  stream >> size;
-  if (size < 1) {
-    // Wrong format...
+  if (blockSize < sizeof (quint16)) {
+    qWarning ("Malformed request");
     socket->disconnectFromHost ();
     communicationState = DisconnectedState;
     return;
   }
+  blockSize -= sizeof (quint16);
+  quint16 size;
+  stream >> size;
+  if (size < 1 || blockSize < size + sizeof (quint16)) {
+    qWarning ("Malformed request");
+    socket->disconnectFromHost ();
+    communicationState = DisconnectedState;
+    return;
+  }
+  blockSize -= size;
   char *mapFileNameStr = new char[size];
   if (stream.readRawData (mapFileNameStr, size) != size) {
-    // Qt magical bug !!! Of course never occur :D
+    qCritical ("socket's read and bytesAvailable are not consistent");
     socket->disconnectFromHost ();
     communicationState = DisconnectedState;
     return;
   }
   QString mapFileName = QString::fromLocal8Bit (mapFileNameStr, size - 1);
   delete[] mapFileNameStr;
+  blockSize -= sizeof (quint16);
   stream >> size;
-  if (size < 1) {
-    // Wrong format...
+  if (size < 1 || blockSize < size + sizeof (qint32)) {
+    qWarning ("Malformed request");
     socket->disconnectFromHost ();
     communicationState = DisconnectedState;
     return;
   }
+  blockSize -= size;
   char *creatorIdStr = new char[size];
   if (stream.readRawData (creatorIdStr, size) != size) {
-    // Qt magical bug !!! Of course never occur :D
+    qCritical ("socket's read and bytesAvailable are not consistent");
     socket->disconnectFromHost ();
     communicationState = DisconnectedState;
     return;
   }
   QString creatorId = QString::fromLocal8Bit (creatorIdStr, size - 1);
   delete[] creatorIdStr;
+  blockSize -= sizeof (qint32);
   qint32 needNewMap;
   stream >> needNewMap;
-  blockSize = 0;
+  if (blockSize != 0) {
+    qWarning ("Malformed request");
+    socket->disconnectFromHost ();
+    communicationState = DisconnectedState;
+    return;
+  }
   if (needNewMap != 0) {
     creatorId = user.getUserName ();
   }
@@ -225,9 +249,15 @@ void Simulator::readNodeRequestData (QDataStream & stream) {
   if (socket->bytesAvailable () < blockSize) {
     return;
   }
+  if (blockSize < 1) {
+    qWarning ("Malformed request");
+    socket->disconnectFromHost ();
+    communicationState = DisconnectedState;
+    return;
+  }
   char *nodeNameStr = new char[blockSize];
   if (stream.readRawData (nodeNameStr, blockSize) != blockSize) {
-    // Qt magical bug !!! Of course never occur :D
+    qCritical ("socket's read and bytesAvailable are not consistent");
     socket->disconnectFromHost ();
     communicationState = DisconnectedState;
     return;
@@ -386,23 +416,29 @@ void Simulator::readObservingData (QDataStream &stream) {
         return;
       }
       stream >> blockSize;
+      if (blockSize < sizeof (quint32) + 1) {
+        qWarning ("Malformed request");
+        socket->disconnectFromHost ();
+        communicationState = DisconnectedState;
+        return;
+      }
     }
     if (socket->bytesAvailable () < blockSize) {
       return;
     }
+    blockSize -= sizeof (quint32);
     quint32 type;
     stream >> type;
     InformationRequestingCommand cmd = static_cast<InformationRequestingCommand> (type);
 
-    int nodeNameSize = ((int) blockSize) - ((int) sizeof (quint32));
-    char *nodeNameStr = new char[nodeNameSize];
-    if (stream.readRawData (nodeNameStr, nodeNameSize) != nodeNameSize) {
-      // Qt magical bug !!! Of course never occur :D
+    char *nodeNameStr = new char[blockSize];
+    if (stream.readRawData (nodeNameStr, blockSize) != blockSize) {
+      qCritical ("socket's read and bytesAvailable are not consistent");
       socket->disconnectFromHost ();
       communicationState = DisconnectedState;
       return;
     }
-    QString nodeName = QString::fromLocal8Bit (nodeNameStr, nodeNameSize - 1);
+    QString nodeName = QString::fromLocal8Bit (nodeNameStr, blockSize - 1);
     delete[] nodeNameStr;
     blockSize = 0;
     try {
@@ -520,7 +556,8 @@ void Simulator::readSimulationData (QDataStream &stream) {
         return;
       }
       stream >> blockSize;
-      if (blockSize <= sizeof (quint32)) {
+      if (blockSize < sizeof (quint32) + 1) {
+        qWarning ("Malformed request");
         socket->disconnectFromHost ();
         communicationState = DisconnectedState;
         return;
@@ -529,10 +566,11 @@ void Simulator::readSimulationData (QDataStream &stream) {
     if (socket->bytesAvailable () < blockSize) {
       return;
     }
+    blockSize -= sizeof (quint32);
     quint32 interfaceIndex;
     stream >> interfaceIndex;
 
-    int frameSize = ((int) blockSize) - ((int) sizeof (quint32));
+    int frameSize = blockSize;
     blockSize = 0;
     try {
       edu::sharif::partov::nse::network::SecondLayerFrame *frame =
@@ -619,8 +657,14 @@ void Simulator::notifyUserAboutInvalidInterfaceIndex (
  * read from socket and respond accordingly.
  */
 void Simulator::readData () {
-  QMutexLocker locker (mutex);
-
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    QTimer::singleShot (0, this, SLOT (readData ()));
+    return;
+  }
+  if (shuttingDown) {
+    return;
+  }
   QDataStream stream (socket);
   stream.setVersion (QDataStream::Qt_5_4);
 
@@ -685,7 +729,7 @@ void Simulator::frameReceived (int interfaceIndex,
 void Simulator::run (void) {
   try {
     mutex = new QMutex ();
-    cond = new QWaitCondition ();
+    semaphore = new QSemaphore (0);
     if (Server::isVerbose ()) {
       qDebug ("New connection established. Reading user request...");
     }
@@ -697,20 +741,20 @@ void Simulator::run (void) {
     connect (socket, SIGNAL (error (QAbstractSocket::SocketError)), this,
              SLOT (displayError (QAbstractSocket::SocketError)), Qt::DirectConnection);
 
-    {
-      QDataStream stream (socket);
-      stream.setVersion (QDataStream::Qt_5_4);
-
-      stream << (quint32) SigningInNegotiationType << (quint32) 1;
-      communicationState = JustSignedInState;
-    }
-
+    QTimer::singleShot (0, this, SLOT (reportSigningIn ()));
     exec (); // enter event loop
 
   } catch (const std::exception &e) {
     qCritical ("--- Panic: Simulator thread died unexpectedly (%s)."
                " Degrading gracefully and continue.", e.what ());
   }
+}
+
+void Simulator::reportSigningIn () {
+  QDataStream stream (socket);
+  stream.setVersion (QDataStream::Qt_5_4);
+  stream << (quint32) SigningInNegotiationType << (quint32) 1;
+  communicationState = JustSignedInState;
 }
 
 void Simulator::displayError (QAbstractSocket::SocketError errorCode) {
@@ -725,9 +769,11 @@ void Simulator::mapSimulationThreadIsAboutToFinish () {
     QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
     map = NULL;
     changesMutex->unlock ();
-    cond->wait (mutex);
+    locker.unlock ();
+    semaphore->acquire ();
     changesMutex->lock ();
-    cond->wakeOne ();
+    locker.relock ();
+    semaphore->release (2);
   } else {
     socket->disconnectFromHost ();
     communicationState = DisconnectedState;

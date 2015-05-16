@@ -2,24 +2,24 @@
 /**
  * Partov is a simulation engine, supporting emulation as well,
  * making it possible to create virtual networks.
- *  
+ *
  * Copyright © 2009-2014 Behnam Momeni.
- * 
+ *
  * This file is part of the Partov.
- * 
+ *
  * Partov is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Partov is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Partov.  If not, see <http://www.gnu.org/licenses/>.
- *  
+ *
  */
 
 #include "MapFactory.h"
@@ -36,6 +36,7 @@
 #include "edu/sharif/partov/nse/plugin/Router.h"
 
 #include "edu/sharif/partov/nse/util/ScalarLogger.h"
+#include "edu/sharif/partov/nse/util/NonBlockingLocker.h"
 
 #include <QMap>
 #include <QMutex>
@@ -84,7 +85,7 @@ MapThread *MapFactory::createOrRetrieveMap (
     QString creatorId, bool needNewMap, QHostAddress host, bool finalizeMap)
 throw (MapNotFoundException *, MaximumMapInstancesPerUserViolatedException *,
     OutOfResourceException *, AuthorizationException *) {
-  QMutexLocker locker (mutex);
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex);
 
   if (needNewMap) {
     if (edu::sharif::partov::nse::server::Server::isVerbose ()) {
@@ -151,7 +152,8 @@ throw (MapNotFoundException *) {
     // TODO: This must be done within Map class
     if (root.localName () != "map"
         || (version != Map::MAP_VERSION &&
-          version != "3.2" && version != "3.1" && version != "3.0")
+        version != "3.3" &&
+        version != "3.2" && version != "3.1" && version != "3.0")
         || root.attribute ("name") != mapFileName
         || (count = root.attribute ("count").toInt ()) <= 0) {
       throw new MapNotFoundException
@@ -163,14 +165,12 @@ throw (MapNotFoundException *) {
     MapInstantiator *mi = new MapInstantiator (count);
     if (authorization.isNull ()) {
       // no authorization tag :) use default values...
-    } else {
-      if (!mi->initializeAuthorizationConfiguration (authorization)) {
-        delete mi;
-        throw new MapNotFoundException
-            (QString ("Error in format of authorization configuration of"
-                      " the ``%1.map'' map file (in map factory).")
-             .arg (mapFileName));
-      }
+    } else if (!mi->initializeAuthorizationConfiguration (authorization)) {
+      delete mi;
+      throw new MapNotFoundException
+          (QString ("Error in format of authorization configuration of"
+                    " the ``%1.map'' map file (in map factory).")
+           .arg (mapFileName));
     }
     mapAllocationTable->insert (mapFileName, mi);
     return mi;

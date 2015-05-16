@@ -2,24 +2,24 @@
 /**
  * Partov is a simulation engine, supporting emulation as well,
  * making it possible to create virtual networks.
- *  
+ *
  * Copyright © 2009-2014 Behnam Momeni.
- * 
+ *
  * This file is part of the Partov.
- * 
+ *
  * Partov is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Partov is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Partov.  If not, see <http://www.gnu.org/licenses/>.
- *  
+ *
  */
 
 #include "SimulatedNode.h"
@@ -32,6 +32,8 @@
 
 #include "edu/sharif/partov/nse/map/interface/Interface.h"
 #include "edu/sharif/partov/nse/map/Map.h"
+
+#include "edu/sharif/partov/nse/util/NonBlockingLocker.h"
 
 #include <QThread>
 #include <QStringList>
@@ -46,7 +48,7 @@ namespace plugin {
 
 SimulatedNode::SimulatedNode (const QString &nodeName,
     edu::sharif::partov::nse::map::Map *parent, bool replyARP, bool replyICMPEcho) :
-    PluginNode (nodeName, parent, replyARP, replyICMPEcho) {
+PluginNode (nodeName, parent, replyARP, replyICMPEcho) {
   apt = All;
   available = true;
   mutex = new QMutex ();
@@ -214,13 +216,13 @@ SimulatedNode *SimulatedNode::instantiatePluginNode (const QString &nodeName,
 }
 
 bool SimulatedNode::isAvailable () const {
-  QMutexLocker locker (mutex);
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex);
 
   return available;
 }
 
 bool SimulatedNode::acquireNode (const QThread *owner) {
-  QMutexLocker locker (mutex);
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex);
 
   if (!available) {
     return false;
@@ -264,7 +266,7 @@ bool SimulatedNode::acquireNode (const QThread *owner) {
 }
 
 void SimulatedNode::releaseNode () {
-  QMutexLocker locker (mutex);
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex);
 
   available = true;
   disconnect (SIGNAL (notifyUserAboutInvalidInterfaceIndex (edu::sharif::partov::nse::map::InvalidInterfaceIndexException *)));
