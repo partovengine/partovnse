@@ -87,7 +87,7 @@ int main (int argc, char *argv[]) {
     return -70;
   }
   if (!QObject::connect (edu::sharif::partov::nse::util::SignalHandler::getInstance (),
-      SIGNAL (interruptSignalTriggered ()), &app, SLOT (quit ()))) {
+                         SIGNAL (interruptSignalTriggered ()), &app, SLOT (quit ()))) {
     return -80;
   }
 

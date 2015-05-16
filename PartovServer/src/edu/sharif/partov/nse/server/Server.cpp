@@ -56,11 +56,6 @@ Server::~Server () {
   shuttingDown = true;
 
   foreach (Simulator *sim, *simulators) {
-    sim->quit ();
-    sim->wait ();
-  }
-
-  foreach (Simulator *sim, *simulators) {
     delete sim;
   }
   delete simulators;
@@ -135,10 +130,9 @@ void Server::userAuthenticated (QTcpSocket *socket,
 
     simulators->append (simulator);
     simulator->setSimulatorUserSocket (socket, user);
-    connect (simulator, SIGNAL (finished ()), this, SLOT (simulatorFinished ()),
-             Qt::QueuedConnection);
-
-    simulator->start ();
+    connect (simulator, SIGNAL (finished ()),
+             this, SLOT (simulatorFinished ()), Qt::QueuedConnection);
+    QTimer::singleShot (0, simulator, SLOT (run ()));
 
   } catch (const std::exception &e) {
     qCritical ("!! Can not start simulator (%s). Degrading gracefully and continue.",
@@ -163,8 +157,6 @@ void Server::simulatorFinished () {
     int index = simulators->indexOf (simulator);
     if (index != -1) {
       simulators->removeAt (index);
-
-      simulator->wait ();
       QTimer::singleShot (0, simulator, SLOT (finalize ()));
     }
   }

@@ -221,7 +221,7 @@ bool SimulatedNode::isAvailable () const {
   return available;
 }
 
-bool SimulatedNode::acquireNode (const QThread *owner) {
+bool SimulatedNode::acquireNode (const QObject *owner) {
   edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex);
 
   if (!available) {

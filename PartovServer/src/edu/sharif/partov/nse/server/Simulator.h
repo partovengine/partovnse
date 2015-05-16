@@ -27,7 +27,6 @@
 
 #include "edu/sharif/partov/nse/usermanagement/User.h"
 
-#include <QThread>
 #include <QTcpSocket>
 
 class QMutex;
@@ -54,16 +53,18 @@ namespace server {
 
 /**
  * Name:              Simulator
- * Parent:            QThread
- * Description:       A simulator is a proxy of simulated node which stands in its own thread
- *                    of control and communicate with exactly one authenticated client framework.
- *                    So it can send forward/backward the sent/received frames via SimulatedNode plugin.
+ * Parent:            QObject
+ * Description:       A simulator is a proxy of simulated node which stands in
+ *                    the main thread and communicates with exactly one
+ *                    authenticated client framework.
+ *                    So it can send forward/backward the sent/received frames
+ *                    via the SimulatedNode plugin.
  *
  * Package Access:    Public
  * Package:           edu.sharif.partov.nse.server
- * Tags:              Thread;
+ * Tags:              None
  */
-class Simulator : public QThread {
+class Simulator : public QObject {
 
   Q_OBJECT
 public:
@@ -114,6 +115,7 @@ public:
   enum CommunicationState {
     NotSignedInState,
     JustSignedInState,
+    InstantiatingOrRetrievingMapState,
     MapSelectedState,
     ConnectedToAMapNodeState,
     SimulatingNodeState,
@@ -140,10 +142,15 @@ private:
   edu::sharif::partov::nse::plugin::SimulatedNode *node;
   edu::sharif::partov::nse::usermanagement::User user;
 
+  QString mapFileName;
+  QString creatorId;
+  qint32 needNewMap;
+
 protected slots:
-  void reportSigningIn ();
   void displayError (QAbstractSocket::SocketError errorCode);
   void readData (void);
+
+  void instantiateOrRetrieveMap ();
 
   void frameReceived (int interfaceIndex,
       edu::sharif::partov::nse::network::SecondLayerFrame *frame);
@@ -161,9 +168,7 @@ signals:
       edu::sharif::partov::nse::network::SecondLayerFrame *frame);
   void changeIPAddress (int interfaceIndex, quint32 ip);
   void changeNetmask (int interfaceIndex, quint32 netmask);
-
-protected:
-  void run (void);
+  void finished ();
 
 public:
   Simulator ();
@@ -174,13 +179,14 @@ public:
 
 public slots:
   void finalize ();
+  void run ();
 
 private:
-  void readMapRequestData (QDataStream & stream);
-  void readNodeRequestData (QDataStream & stream);
-  void readNodeInformationRequestData (QDataStream & stream);
+  void readMapRequestData (QDataStream &stream);
+  void readNodeRequestData (QDataStream &stream);
+  void readNodeInformationRequestData (QDataStream &stream);
   void readObservingData (QDataStream &stream);
-  void readSimulationData (QDataStream & stream);
+  void readSimulationData (QDataStream &stream);
 };
 
 }

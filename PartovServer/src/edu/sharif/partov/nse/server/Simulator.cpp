@@ -52,11 +52,10 @@ namespace nse {
 namespace server {
 
 Simulator::Simulator () :
-QThread (), communicationState (NotSignedInState), simulationState (IdleState),
-shuttingDown (false), mutex (NULL), semaphore (NULL),
+QObject (), communicationState (NotSignedInState), simulationState (IdleState),
+shuttingDown (false), mutex (new QMutex ()), semaphore (new QSemaphore (0)),
 blockSize (0), map (NULL), node (NULL) {
   // create simulator...
-  moveToThread (this);
 }
 
 Simulator::~Simulator () {
@@ -67,26 +66,24 @@ Simulator::~Simulator () {
 }
 
 void Simulator::finalize () {
-  { // PRE-CONDITION: This Simulator thread is already finished and wait()-ed upon.
-    edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
-    if (!locker.isLocked ()) {
-      QTimer::singleShot (0, this, SLOT (finalize ()));
-      return;
-    }
-    shuttingDown = true;
-    if (map) {
-      QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    QTimer::singleShot (0, this, SLOT (finalize ()));
+    return;
+  }
+  shuttingDown = true;
+  if (map) {
+    QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
+    locker.unlock ();
+    edu::sharif::partov::nse::util::NonBlockingLocker changesMutexLocker (changesMutex);
+    locker.relock (true);
+    disconnect ();
+    if (map == NULL) {
+      semaphore->release ();
+      changesMutexLocker.unlock ();
       locker.unlock ();
-      edu::sharif::partov::nse::util::NonBlockingLocker changesMutexLocker (changesMutex);
+      edu::sharif::partov::nse::util::NonBlockingLocker waitCondition (semaphore, 2);
       locker.relock (true);
-      disconnect ();
-      if (map == NULL) {
-        semaphore->release ();
-        changesMutexLocker.unlock ();
-        locker.unlock ();
-        edu::sharif::partov::nse::util::NonBlockingLocker waitCondition (semaphore, 2);
-        locker.relock (true);
-      }
     }
   }
   deleteLater ();
@@ -96,12 +93,18 @@ void Simulator::setSimulatorUserSocket (QTcpSocket *socket,
     edu::sharif::partov::nse::usermanagement::User _user) {
   socket->disconnect ();
 
-  socket->setParent (0);
-  socket->moveToThread (this);
   this->socket = socket;
   user = _user;
 
   socket->setParent (this);
+
+  connect (socket, SIGNAL (readyRead ()), this, SLOT (readData ()),
+           Qt::DirectConnection);
+  connect (socket, SIGNAL (error (QAbstractSocket::SocketError)),
+           this, SLOT (displayError (QAbstractSocket::SocketError)),
+           Qt::DirectConnection);
+  connect (socket, SIGNAL (disconnected ()), this, SIGNAL (finished ()),
+           Qt::DirectConnection);
 }
 
 void Simulator::readMapRequestData (QDataStream & stream) {
@@ -148,7 +151,7 @@ void Simulator::readMapRequestData (QDataStream & stream) {
     communicationState = DisconnectedState;
     return;
   }
-  QString mapFileName = QString::fromLocal8Bit (mapFileNameStr, size - 1);
+  mapFileName = QString::fromLocal8Bit (mapFileNameStr, size - 1);
   delete[] mapFileNameStr;
   blockSize -= sizeof (quint16);
   stream >> size;
@@ -166,10 +169,9 @@ void Simulator::readMapRequestData (QDataStream & stream) {
     communicationState = DisconnectedState;
     return;
   }
-  QString creatorId = QString::fromLocal8Bit (creatorIdStr, size - 1);
+  creatorId = QString::fromLocal8Bit (creatorIdStr, size - 1);
   delete[] creatorIdStr;
   blockSize -= sizeof (qint32);
-  qint32 needNewMap;
   stream >> needNewMap;
   if (blockSize != 0) {
     qWarning ("Malformed request");
@@ -180,10 +182,37 @@ void Simulator::readMapRequestData (QDataStream & stream) {
   if (needNewMap != 0) {
     creatorId = user.getUserName ();
   }
+  communicationState = InstantiatingOrRetrievingMapState;
+  QTimer::singleShot (0, this, SLOT (instantiateOrRetrieveMap ()));
+}
+
+void Simulator::instantiateOrRetrieveMap () {
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    QTimer::singleShot (0, this, SLOT (readData ()));
+    return;
+  }
+  if (shuttingDown) {
+    return;
+  }
+  if (communicationState != InstantiatingOrRetrievingMapState) {
+    qWarning ("instantiateOrRetrieveMap () is called while the state of "
+              "simulator is not InstantiatingOrRetrievingMapState. It is %d",
+              communicationState);
+    socket->disconnectFromHost ();
+    communicationState = DisconnectedState;
+    return;
+  }
+  QDataStream stream (socket);
+  stream.setVersion (QDataStream::Qt_5_4);
   try {
     map = edu::sharif::partov::nse::map::MapFactory::getInstance ()
         ->createOrRetrieveMap (user, mapFileName, creatorId, needNewMap == 1,
                                socket->peerAddress (), needNewMap == -1);
+    if (!map) { // cannot acquire the lock
+      QTimer::singleShot (0, this, SLOT (instantiateOrRetrieveMap ()));
+      return;
+    }
     if (needNewMap == -1) {
       map->finalize ();
       map = NULL;
@@ -694,7 +723,8 @@ void Simulator::readData () {
     break;
 
   default:
-    qCritical ("--- Panic: Simulator undefined state: %d", communicationState);
+    qWarning ("Unexpected Simulator state: %d", communicationState);
+    socket->disconnectFromHost ();
     communicationState = DisconnectedState;
     break;
   }
@@ -726,33 +756,13 @@ void Simulator::frameReceived (int interfaceIndex,
   frame->finalize ();
 }
 
-void Simulator::run (void) {
-  try {
-    mutex = new QMutex ();
-    semaphore = new QSemaphore (0);
-    if (Server::isVerbose ()) {
-      qDebug ("New connection established. Reading user request...");
-    }
-    connect (socket, SIGNAL (disconnected ()), this, SLOT (quit ()),
-             Qt::DirectConnection);
-
-    connect (socket, SIGNAL (readyRead ()), this, SLOT (readData ()),
-             Qt::DirectConnection);
-    connect (socket, SIGNAL (error (QAbstractSocket::SocketError)), this,
-             SLOT (displayError (QAbstractSocket::SocketError)), Qt::DirectConnection);
-
-    QTimer::singleShot (0, this, SLOT (reportSigningIn ()));
-    exec (); // enter event loop
-
-  } catch (const std::exception &e) {
-    qCritical ("--- Panic: Simulator thread died unexpectedly (%s)."
-               " Degrading gracefully and continue.", e.what ());
+void Simulator::run () {
+  if (Server::isVerbose ()) {
+    qDebug ("New connection established. Reading user request...");
   }
-}
-
-void Simulator::reportSigningIn () {
   QDataStream stream (socket);
   stream.setVersion (QDataStream::Qt_5_4);
+
   stream << (quint32) SigningInNegotiationType << (quint32) 1;
   communicationState = JustSignedInState;
 }

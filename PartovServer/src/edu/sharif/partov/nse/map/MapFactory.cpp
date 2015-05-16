@@ -85,8 +85,10 @@ MapThread *MapFactory::createOrRetrieveMap (
     QString creatorId, bool needNewMap, QHostAddress host, bool finalizeMap)
 throw (MapNotFoundException *, MaximumMapInstancesPerUserViolatedException *,
     OutOfResourceException *, AuthorizationException *) {
-  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex);
-
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    return NULL;
+  }
   if (needNewMap) {
     if (edu::sharif::partov::nse::server::Server::isVerbose ()) {
       qDebug ("Creating map from the ``%s.map'' map file by ``%s'' user.",
