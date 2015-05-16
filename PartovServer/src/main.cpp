@@ -3,7 +3,7 @@
  * Partov is a simulation engine, supporting emulation as well,
  * making it possible to create virtual networks.
  *
- * Copyright © 2009-2014 Behnam Momeni.
+ * Copyright © 2009-2015 Behnam Momeni.
  *
  * This file is part of the Partov.
  *
@@ -124,7 +124,7 @@ void printShortIntro () {
   cout << "                                                                                    " << endl;
   cout << "Partov Project - Version " << edu::sharif::partov::nse::map::Map::MAP_VERSION << " -- Central Server" << endl;
   cout << "Code-name: PARTOV (Portable And Reliable Tool fOr Virtualization)" << endl;
-  cout << "Copyright © 2009-2014 Behnam Momeni." << endl;
+  cout << "Copyright © 2009-2015 Behnam Momeni." << endl;
   cout << "For any bugs, report to <b_momeni@ce.sharif.edu>" << endl;
   cout << "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>." << endl;
   cout << "This is free software: you are free to change and redistribute it." << endl;

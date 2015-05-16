@@ -3,7 +3,7 @@
  * Partov is a simulation engine, supporting emulation as well,
  * making it possible to create virtual networks.
  *  
- * Copyright © 2009-2014 Behnam Momeni.
+ * Copyright © 2009-2015 Behnam Momeni.
  * 
  * This file is part of the Partov.
  * 
@@ -60,8 +60,6 @@ class ItemVisitor;
  * Package Access:    Public
  * Package:           edu.sharif.partov.nse.map.builder
  * Tags:              Template, Visitor;
- *
- * Copyright:         © 2009-2014 Behnam Momeni
  */
 template < typename Type >
 class ListVisitor : public NamedElementVisitor {

@@ -20,7 +20,7 @@
  Partov is a simulation engine, supporting emulation as well,
  making it possible to create virtual networks.
   
- Copyright © 2009-2014 Behnam Momeni.
+ Copyright © 2009-2015 Behnam Momeni.
  
  This file is part of the Partov.
  
@@ -44,8 +44,8 @@
 ====================================================================================
 For installing central Partov server you need to install following dependencies:
  1. MySQL/MariaDB Database Management System (for users' information)
- 2. libpcap 1.5.1 (both its library and dev version; for emulation capabilities)
- 3. Qt 4 development libraries (latest tested version is 4.8.5)
+ 2. libpcap 1.5.1 or above (both its library and dev version for emulation capabilities)
+ 3. Qt 5 development libraries (latest tested version is 5.4.1)
 
 After installing MySQL database, use the ``PartovServer/deploy/bin/createdb.sql'' SQL
 file in order to create a database, user account, and required table/contents (you need
@@ -61,7 +61,7 @@ $  qmake
 $  make
 
 This will create ``partov'' binary file in the ``PartovServer/deploy/bin/'' folder.
-Partov is tested with libpcap 1.5.1 and uses new libpcap (after 1.0) API to capture
+Partov is tested with libpcap 1.6.2 and uses new libpcap (after 1.0) API to capture
 packets.
 If you faced errors during compilation, complaining about missing pcap_* functions,
 it means that you do not have latest version of libpcap installed. You can enable
@@ -98,7 +98,7 @@ using modern XML editors (e.g. Rinzo plugin for Eclipse) provides auto-completio
 writing PTL map files.
 
 It's also possible to compile central Partov server for win32 systems using
-the win32 dependencies of Qt4 (placing them in win32-dep folder, on parent folder of
+the win32 dependencies of Qt5 (placing them in win32-dep folder, on parent folder of
 the PartovServer folder) and the winpcap instead of the libpcap.
 
 ====================================================================================
