@@ -75,6 +75,7 @@ void Server::listenForConnections (void) {
     log << " [Failed]\n"
         "Port is not configured correctly.\n";
     QCoreApplication::quit ();
+    return;
   }
   int timeoutInSeconds = config.value ("timeout-seconds", 0).toInt (&ok);
   if (!ok) {
@@ -82,6 +83,7 @@ void Server::listenForConnections (void) {
         "Server timeout value is not configured correctly"
         " (an integer indicating timeout in seconds is expected).\n";
     QCoreApplication::quit ();
+    return;
   }
   config.endGroup ();
 
@@ -93,6 +95,7 @@ void Server::listenForConnections (void) {
     log << " [Failed]\n"
         "Unable to start the Partov server:" << tcpServer->errorString ();
     QCoreApplication::quit ();
+    return;
   } else {
     log << " [Done]\n"
         "Listening for connections on port" << port << "...\n";
