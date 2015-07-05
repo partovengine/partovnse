@@ -34,6 +34,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QSettings>
+#include <sys/prctl.h>
 
 namespace edu {
 namespace sharif {
@@ -42,11 +43,15 @@ namespace nse {
 namespace server {
 
 bool Server::verbose;
+bool Server::dumpable;
 
 Server::Server () :
 shuttingDown (false) {
   // create server in current (main) thread...
   simulators = new QList < Simulator * > ();
+  if (Server::dumpable) {
+    prctl (PR_SET_DUMPABLE, 1);
+  }
 }
 
 Server::~Server () {
@@ -169,6 +174,7 @@ void Server::loadGlobalSettings () {
   QSettings config ("../config/config.ini", QSettings::IniFormat);
   config.beginGroup ("server");
   Server::verbose = config.value ("verbose", false).toBool ();
+  Server::dumpable = config.value ("dumpable", false).toBool ();
   config.endGroup ();
 }
 
