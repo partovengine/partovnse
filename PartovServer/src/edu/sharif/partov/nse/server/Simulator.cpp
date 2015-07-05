@@ -51,11 +51,18 @@ namespace partov {
 namespace nse {
 namespace server {
 
+namespace {
+const QThread *MAIN_THREAD = 0;
+}
+
 Simulator::Simulator () :
 QObject (), communicationState (NotSignedInState), simulationState (IdleState),
 shuttingDown (false), mutex (new QMutex ()), semaphore (new QSemaphore (0)),
 blockSize (0), map (NULL), node (NULL) {
   // create simulator...
+  if (MAIN_THREAD == 0) {
+    MAIN_THREAD = QThread::currentThread ();
+  }
 }
 
 Simulator::~Simulator () {
@@ -66,6 +73,7 @@ Simulator::~Simulator () {
 }
 
 void Simulator::finalize () {
+  Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
   edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
   if (!locker.isLocked ()) {
     QTimer::singleShot (0, this, SLOT (finalize ()));
@@ -91,6 +99,7 @@ void Simulator::finalize () {
 
 void Simulator::setSimulatorUserSocket (QTcpSocket *socket,
     edu::sharif::partov::nse::usermanagement::User _user) {
+  Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
   socket->disconnect ();
 
   this->socket = socket;
@@ -373,6 +382,7 @@ void Simulator::readNodeInformationRequestData (QDataStream & stream) {
 }
 
 void Simulator::nodeIPAddressChanged (QString nodeName, int interfaceIndex, quint32 ip) {
+  Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
   QMutexLocker locker (mutex);
   if (communicationState != ObservingChangeEventsState) {
     return;
@@ -392,6 +402,7 @@ void Simulator::nodeIPAddressChanged (QString nodeName, int interfaceIndex, quin
 
 void Simulator::nodeNetmaskChanged (QString nodeName, int interfaceIndex,
     quint32 netmask) {
+  Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
   QMutexLocker locker (mutex);
   if (communicationState != ObservingChangeEventsState) {
     return;
@@ -666,6 +677,7 @@ void Simulator::readSimulationData (QDataStream &stream) {
 
 void Simulator::notifyUserAboutInvalidInterfaceIndex (
     edu::sharif::partov::nse::map::InvalidInterfaceIndexException *e) {
+  Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
   if (communicationState != SimulatingNodeState) {
     return;
   }
@@ -686,6 +698,7 @@ void Simulator::notifyUserAboutInvalidInterfaceIndex (
  * read from socket and respond accordingly.
  */
 void Simulator::readData () {
+  Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
   edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
   if (!locker.isLocked ()) {
     QTimer::singleShot (0, this, SLOT (readData ()));
@@ -732,6 +745,7 @@ void Simulator::readData () {
 
 void Simulator::frameReceived (int interfaceIndex,
     edu::sharif::partov::nse::network::SecondLayerFrame *frame) {
+  Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
   if (communicationState != SimulatingNodeState) {
     frame->finalize ();
     return;
@@ -757,6 +771,7 @@ void Simulator::frameReceived (int interfaceIndex,
 }
 
 void Simulator::run () {
+  Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
   if (Server::isVerbose ()) {
     qDebug ("New connection established. Reading user request...");
   }
@@ -768,12 +783,14 @@ void Simulator::run () {
 }
 
 void Simulator::displayError (QAbstractSocket::SocketError errorCode) {
+  Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
   if (Server::isVerbose ()) {
     qDebug ("An error occurred during TCP IO operation, code %d", errorCode);
   }
 }
 
 void Simulator::mapSimulationThreadIsAboutToFinish () {
+  Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
   QMutexLocker locker (mutex);
   if (shuttingDown) {
     QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
