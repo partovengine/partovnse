@@ -107,7 +107,7 @@ void Simulator::setSimulatorUserSocket (QTcpSocket *socket,
            Qt::DirectConnection);
 }
 
-void Simulator::readMapRequestData (QDataStream & stream) {
+void Simulator::readMapRequestData (QDataStream &stream) {
   /* read
    *   1. map file name
    *   2. map creator id
@@ -189,7 +189,7 @@ void Simulator::readMapRequestData (QDataStream & stream) {
 void Simulator::instantiateOrRetrieveMap () {
   edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
   if (!locker.isLocked ()) {
-    QTimer::singleShot (0, this, SLOT (readData ()));
+    QTimer::singleShot (0, this, SLOT (instantiateOrRetrieveMap ()));
     return;
   }
   if (shuttingDown) {
@@ -295,8 +295,8 @@ void Simulator::readNodeRequestData (QDataStream & stream) {
   delete[] nodeNameStr;
   blockSize = 0;
   try {
-    node = qobject_cast < edu::sharif::partov::nse::plugin::SimulatedNode * > (
-        map->getMap ()->retrieveNodeByName (nodeName));
+    node = qobject_cast < edu::sharif::partov::nse::plugin::SimulatedNode * >
+        (map->getMap ()->retrieveNodeByName (nodeName));
     if (!node || !node->acquireNode (this)) {
       node = NULL;
       QString mesg = "There is no available simulatable node with ``%1'' as its name"
@@ -471,8 +471,8 @@ void Simulator::readObservingData (QDataStream &stream) {
     delete[] nodeNameStr;
     blockSize = 0;
     try {
-      node = qobject_cast < edu::sharif::partov::nse::plugin::SimulatedNode * > (
-          map->getMap ()->retrieveNodeByName (nodeName));
+      node = qobject_cast < edu::sharif::partov::nse::plugin::SimulatedNode * >
+          (map->getMap ()->retrieveNodeByName (nodeName));
       if (!node) {
         node = NULL;
         QString mesg = "There is no such requested node with ``%1'' as its name"
