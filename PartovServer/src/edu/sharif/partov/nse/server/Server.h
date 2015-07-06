@@ -59,14 +59,17 @@ class Server : public QObject {
 private:
   bool shuttingDown;
 
-  QList < Simulator * > *simulators;
-
 protected:
   QTcpServer *tcpServer;
 
 public:
   Server ();
   ~Server ();
+
+  void processPendingMessages ();
+
+signals:
+  void sendPendingMessages ();
 
 public slots:
   void listenForConnections (void);
@@ -76,8 +79,6 @@ protected slots:
   void userAuthenticated (QTcpSocket *socket,
       edu::sharif::partov::nse::usermanagement::User user);
   void authenticationFailed (QTcpSocket *socket);
-
-  void simulatorFinished (void);
 
 private:
   static bool verbose;

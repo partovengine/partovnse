@@ -118,7 +118,6 @@ public:
   bool /* Synchronized */isAvailable () const;
   bool /* Synchronized */acquireNode (const QObject *owner);
 
-protected slots:
   /**
    * Pre-Condition: node must not be available.
    */

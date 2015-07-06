@@ -48,25 +48,21 @@ bool Server::dumpable;
 Server::Server () :
 shuttingDown (false) {
   // create server in current (main) thread...
-  simulators = new QList < Simulator * > ();
   if (Server::dumpable) {
     prctl (PR_SET_DUMPABLE, 1);
   }
 }
 
 Server::~Server () {
-  // FIXME: We should do finalization sooner (for example through the QCoreApplication::aboutToQuit () signal).
   QDebug log = qDebug ();
   log << "Shutting down server.......";
   shuttingDown = true;
+  log << " [Done]" << endl;
+  log << "Please wait a minute for last finalizing operations..." << endl;
+}
 
-  foreach (Simulator *sim, *simulators) {
-    delete sim;
-  }
-  delete simulators;
-
-  log << " [Done] " << endl << "Please wait a minute for last finalizing operations..."
-      << endl;
+void Server::processPendingMessages () {
+  emit sendPendingMessages (); /* @@ signal emitted @@ */
 }
 
 void Server::listenForConnections (void) {
@@ -134,12 +130,11 @@ void Server::newConnectionEstablished (void) {
 void Server::userAuthenticated (QTcpSocket *socket,
     edu::sharif::partov::nse::usermanagement::User user) {
   try {
-    Simulator *simulator = new Simulator ();
+    Simulator *simulator = new Simulator (this);
 
-    simulators->append (simulator);
     simulator->setSimulatorUserSocket (socket, user);
-    connect (simulator, SIGNAL (finished ()),
-             this, SLOT (simulatorFinished ()), Qt::QueuedConnection);
+    connect (this, &Server::sendPendingMessages,
+             simulator, &Simulator::sendPendingMessage, Qt::QueuedConnection);
     QTimer::singleShot (0, simulator, SLOT (run ()));
 
   } catch (const std::exception &e) {
@@ -154,20 +149,6 @@ void Server::authenticationFailed (QTcpSocket *socket) {
 
   stream << (quint32) Simulator::SigningInNegotiationType << (quint32) 0;
   socket->disconnectFromHost ();
-}
-
-void Server::simulatorFinished () {
-  if (shuttingDown) {
-    return;
-  }
-  Simulator *simulator = qobject_cast < Simulator * > (sender ());
-  if (simulator) {
-    int index = simulators->indexOf (simulator);
-    if (index != -1) {
-      simulators->removeAt (index);
-      QTimer::singleShot (0, simulator, SLOT (finalize ()));
-    }
-  }
 }
 
 void Server::loadGlobalSettings () {

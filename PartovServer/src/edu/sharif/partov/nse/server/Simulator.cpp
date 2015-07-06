@@ -55,31 +55,48 @@ namespace {
 const QThread *MAIN_THREAD = 0;
 }
 
-Simulator::Simulator () :
-QObject (), communicationState (NotSignedInState), simulationState (IdleState),
+Simulator::Simulator (Server *server) :
+QObject (server), pendingMessage (new QByteArray ()),
+communicationState (NotSignedInState), simulationState (IdleState),
 shuttingDown (false), mutex (new QMutex ()), semaphore (new QSemaphore (0)),
+mayBlock (new QMutex ()),
 blockSize (0), map (NULL), node (NULL) {
   // create simulator...
   if (MAIN_THREAD == 0) {
     MAIN_THREAD = QThread::currentThread ();
   }
+  mayBlock->lock ();
 }
 
 Simulator::~Simulator () {
+  delete pendingMessage;
   delete mutex;
   mutex = NULL;
   delete semaphore;
+  mayBlock->unlock ();
+  delete mayBlock;
+  mayBlock = NULL;
   semaphore = NULL;
 }
 
 void Simulator::finalize () {
   Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
+  if (shuttingDown) {
+    return;
+  }
   edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
   if (!locker.isLocked ()) {
     QTimer::singleShot (0, this, SLOT (finalize ()));
     return;
   }
   shuttingDown = true;
+  socket->disconnectFromHost ();
+  if (node) {
+    mayBlock->unlock ();
+    node->releaseNode ();
+    mayBlock->lock ();
+    node = NULL;
+  }
   if (map) {
     QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
     locker.unlock ();
@@ -93,6 +110,7 @@ void Simulator::finalize () {
       edu::sharif::partov::nse::util::NonBlockingLocker waitCondition (semaphore, 2);
       locker.relock (true);
     }
+    map = NULL;
   }
   deleteLater ();
 }
@@ -114,6 +132,8 @@ void Simulator::setSimulatorUserSocket (QTcpSocket *socket,
            Qt::DirectConnection);
   connect (socket, SIGNAL (disconnected ()), this, SIGNAL (finished ()),
            Qt::DirectConnection);
+  connect (this, &Simulator::finished,
+           this, &Simulator::finalize, Qt::QueuedConnection);
 }
 
 void Simulator::readMapRequestData (QDataStream &stream) {
@@ -383,11 +403,15 @@ void Simulator::readNodeInformationRequestData (QDataStream & stream) {
 
 void Simulator::nodeIPAddressChanged (QString nodeName, int interfaceIndex, quint32 ip) {
   Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
-  QMutexLocker locker (mutex);
-  if (communicationState != ObservingChangeEventsState) {
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    qFatal ("--- Panic: nodeIPAddressChanged is called within map thread "
+            "while the (observer) mutex is locked!");
+  }
+  if (shuttingDown || communicationState != ObservingChangeEventsState) {
     return;
   }
-  QDataStream stream (socket);
+  QDataStream stream (pendingMessage, QIODevice::Append);
   stream.setVersion (QDataStream::Qt_5_4);
 
   stream << static_cast<quint32> (ChangeEventNotificationType)
@@ -403,11 +427,15 @@ void Simulator::nodeIPAddressChanged (QString nodeName, int interfaceIndex, quin
 void Simulator::nodeNetmaskChanged (QString nodeName, int interfaceIndex,
     quint32 netmask) {
   Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
-  QMutexLocker locker (mutex);
-  if (communicationState != ObservingChangeEventsState) {
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    qFatal ("--- Panic: nodeNetmaskChanged is called within map thread "
+            "while the (observer) mutex is locked!");
+  }
+  if (shuttingDown || communicationState != ObservingChangeEventsState) {
     return;
   }
-  QDataStream stream (socket);
+  QDataStream stream (pendingMessage, QIODevice::Append);
   stream.setVersion (QDataStream::Qt_5_4);
 
   stream << static_cast<quint32> (ChangeEventNotificationType)
@@ -418,6 +446,23 @@ void Simulator::nodeNetmaskChanged (QString nodeName, int interfaceIndex,
   stream.writeRawData (qPrintable (nodeName), size);
 
   stream << static_cast<quint32> (interfaceIndex) << static_cast<quint32> (netmask);
+}
+
+void Simulator::sendPendingMessage () {
+  Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    QTimer::singleShot (0, this, &Simulator::sendPendingMessage);
+    return;
+  }
+  if (shuttingDown || pendingMessage->isEmpty ()) {
+    return;
+  }
+  QDataStream stream (socket);
+  stream.setVersion (QDataStream::Qt_5_4);
+
+  stream.writeRawData (pendingMessage->constData (), pendingMessage->size ());
+  pendingMessage->clear ();
 }
 
 void Simulator::readObservingData (QDataStream &stream) {
@@ -578,7 +623,9 @@ void Simulator::readSimulationData (QDataStream &stream) {
       break;
 
     case WalkOnFiniteStateMachineCommand:
+      mayBlock->unlock ();
       emit walkOnFsm (); /* @@ signal emitted @@ */
+      mayBlock->lock ();
       return;
     }
   }
@@ -621,7 +668,9 @@ void Simulator::readSimulationData (QDataStream &stream) {
       if (socket->bytesAvailable () > 0) {
         QTimer::singleShot (0, this, SLOT (readData ()));
       }
+      mayBlock->unlock ();
       emit sendFrame ((int) interfaceIndex, frame); /* @@ signal emitted @@ */
+      mayBlock->lock ();
 
     } catch (edu::sharif::partov::nse::network::IOException *e) {
       e->printExceptionDescription ();
@@ -629,6 +678,7 @@ void Simulator::readSimulationData (QDataStream &stream) {
 
       socket->disconnectFromHost ();
       communicationState = DisconnectedState;
+      return;
     }
   }
     break;
@@ -646,7 +696,9 @@ void Simulator::readSimulationData (QDataStream &stream) {
     if (socket->bytesAvailable () > 0) {
       QTimer::singleShot (0, this, SLOT (readData ()));
     }
+    mayBlock->unlock ();
     emit changeIPAddress ((int) ifaceIndex, newIP); /* @@ signal emitted @@ */
+    mayBlock->lock ();
   }
     break;
 
@@ -663,7 +715,9 @@ void Simulator::readSimulationData (QDataStream &stream) {
     if (socket->bytesAvailable () > 0) {
       QTimer::singleShot (0, this, SLOT (readData ()));
     }
+    mayBlock->unlock ();
     emit changeNetmask ((int) ifaceIndex, newNetmask); /* @@ signal emitted @@ */
+    mayBlock->lock ();
   }
     break;
 
@@ -671,8 +725,9 @@ void Simulator::readSimulationData (QDataStream &stream) {
     qCritical ("--- Panic: Simulation state is undefined: %d", simulationState);
     socket->disconnectFromHost ();
     communicationState = DisconnectedState;
-    break;
+    return;
   }
+  static_cast<Server *> (parent ())->processPendingMessages ();
 }
 
 void Simulator::notifyUserAboutInvalidInterfaceIndex (
@@ -681,7 +736,7 @@ void Simulator::notifyUserAboutInvalidInterfaceIndex (
   if (communicationState != SimulatingNodeState) {
     return;
   }
-  QDataStream stream (socket);
+  QDataStream stream (pendingMessage, QIODevice::Append);
   stream.setVersion (QDataStream::Qt_5_4);
 
   stream << (quint32) InvalidInterfaceIndexType;
@@ -746,6 +801,13 @@ void Simulator::readData () {
 void Simulator::frameReceived (int interfaceIndex,
     edu::sharif::partov::nse::network::SecondLayerFrame *frame) {
   Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  edu::sharif::partov::nse::util::NonBlockingLocker mbLocker (mayBlock, false);
+  while (!locker.isLocked () && !mbLocker.isLocked ()) {
+    QThread::yieldCurrentThread ();
+    locker.relock (false);
+    mbLocker.relock (false);
+  }
   if (communicationState != SimulatingNodeState) {
     frame->finalize ();
     return;
@@ -761,13 +823,14 @@ void Simulator::frameReceived (int interfaceIndex,
   out.device ()->seek (0);
   out << (quint16) (block.size () - sizeof (quint16));
 
-  QDataStream stream (socket);
+  QDataStream stream (pendingMessage, QIODevice::Append);
   stream.setVersion (QDataStream::Qt_5_4);
 
   stream << (quint32) RawFrameReceivedNotificationType;
   stream.writeRawData (block.constData (), block.size ());
 
   frame->finalize ();
+  static_cast<Server *> (parent ())->processPendingMessages ();
 }
 
 void Simulator::run () {
@@ -802,9 +865,9 @@ void Simulator::mapSimulationThreadIsAboutToFinish () {
     locker.relock ();
     semaphore->release (2);
   } else {
-    socket->disconnectFromHost ();
     communicationState = DisconnectedState;
     map = NULL; // map changes notification mutex is already locked
+    emit finished (); /* @@ signal emitted @@ */
   }
 }
 

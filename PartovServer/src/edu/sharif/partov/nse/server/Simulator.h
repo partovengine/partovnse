@@ -31,6 +31,7 @@
 
 class QMutex;
 class QSemaphore;
+class QByteArray;
 
 namespace edu {
 namespace sharif {
@@ -50,6 +51,8 @@ namespace plugin {
 class SimulatedNode;
 }
 namespace server {
+
+class Server;
 
 /**
  * Name:              Simulator
@@ -128,12 +131,15 @@ public:
   };
 
 private:
+  QByteArray *pendingMessage;
+
   CommunicationState communicationState;
   SimulationState simulationState;
 
   bool shuttingDown;
   QMutex *mutex;
   QSemaphore *semaphore;
+  QMutex *mayBlock;
 
   quint16 blockSize;
   QTcpSocket *socket;
@@ -171,7 +177,7 @@ signals:
   void finished ();
 
 public:
-  Simulator ();
+  Simulator (Server *server);
   ~Simulator ();
 
   void setSimulatorUserSocket (QTcpSocket *socket,
@@ -180,6 +186,8 @@ public:
 public slots:
   void finalize ();
   void run ();
+
+  void sendPendingMessage ();
 
 private:
   void readMapRequestData (QDataStream &stream);

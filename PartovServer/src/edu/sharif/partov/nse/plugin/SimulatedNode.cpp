@@ -253,9 +253,6 @@ bool SimulatedNode::acquireNode (const QObject *owner) {
       (this, SIGNAL (frameReceived (int, edu::sharif::partov::nse::network::SecondLayerFrame *)),
        owner, SLOT (frameReceived (int, edu::sharif::partov::nse::network::SecondLayerFrame *)),
        Qt::DirectConnection);
-  signalSlotsConnectionSucceeds = signalSlotsConnectionSucceeds
-      && connect (owner, SIGNAL (finished ()), this, SLOT (releaseNode ()),
-                  Qt::DirectConnection);
 
   if (signalSlotsConnectionSucceeds) {
     return true;
