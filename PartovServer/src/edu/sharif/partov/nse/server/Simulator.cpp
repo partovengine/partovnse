@@ -43,7 +43,6 @@
 
 #include <QTimer>
 #include <QMutex>
-#include <QSemaphore>
 
 namespace edu {
 namespace sharif {
@@ -58,7 +57,7 @@ const QThread *MAIN_THREAD = 0;
 Simulator::Simulator (Server *server) :
 QObject (server), pendingMessage (new QByteArray ()),
 communicationState (NotSignedInState), simulationState (IdleState),
-shuttingDown (false), mutex (new QMutex ()), semaphore (new QSemaphore (0)),
+shuttingDown (false), mutex (new QMutex ()),
 mayBlock (new QMutex ()),
 blockSize (0), map (NULL), node (NULL) {
   // create simulator...
@@ -72,11 +71,9 @@ Simulator::~Simulator () {
   delete pendingMessage;
   delete mutex;
   mutex = NULL;
-  delete semaphore;
   mayBlock->unlock ();
   delete mayBlock;
   mayBlock = NULL;
-  semaphore = NULL;
 }
 
 void Simulator::finalize () {
@@ -90,28 +87,23 @@ void Simulator::finalize () {
     return;
   }
   shuttingDown = true;
-  socket->disconnectFromHost ();
+  disconnect ();
   if (node) {
     mayBlock->unlock ();
-    node->releaseNode ();
+    const bool released =
+        edu::sharif::partov::nse::map::MapFactory::getInstance ()
+        ->releaseNode (node);
     mayBlock->lock ();
+    if (!released) {
+      connect (map, &edu::sharif::partov::nse::map::MapThread::aboutToFinish,
+               this, &Simulator::mapSimulationThreadIsAboutToFinish,
+               Qt::DirectConnection);
+      QTimer::singleShot (0, this, SLOT (finalize ()));
+      return;
+    }
     node = NULL;
   }
-  if (map) {
-    QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
-    locker.unlock ();
-    edu::sharif::partov::nse::util::NonBlockingLocker changesMutexLocker (changesMutex);
-    locker.relock (true);
-    disconnect ();
-    if (map == NULL) {
-      semaphore->release ();
-      changesMutexLocker.unlock ();
-      locker.unlock ();
-      edu::sharif::partov::nse::util::NonBlockingLocker waitCondition (semaphore, 2);
-      locker.relock (true);
-    }
-    map = NULL;
-  }
+  map = NULL;
   deleteLater ();
 }
 
@@ -853,22 +845,21 @@ void Simulator::displayError (QAbstractSocket::SocketError errorCode) {
 }
 
 void Simulator::mapSimulationThreadIsAboutToFinish () {
-  Q_ASSERT (QThread::currentThread () != MAIN_THREAD);
-  QMutexLocker locker (mutex);
-  if (shuttingDown) {
-    QMutex *changesMutex = map->getMap ()->getMapChangesNotificationMutex ();
-    map = NULL;
-    changesMutex->unlock ();
-    locker.unlock ();
-    semaphore->acquire ();
-    changesMutex->lock ();
-    locker.relock ();
-    semaphore->release (2);
-  } else {
-    communicationState = DisconnectedState;
-    map = NULL; // map changes notification mutex is already locked
-    emit finished (); /* @@ signal emitted @@ */
+  Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    qFatal ("--- Panic: mapSimulationThreadIsAboutToFinish is called within "
+            "main thread while the mutex is locked!");
   }
+  if (node) {
+    mayBlock->unlock ();
+    node->releaseNode ();
+    mayBlock->lock ();
+    node = NULL;
+  }
+  socket->disconnectFromHost ();
+  communicationState = DisconnectedState;
+  map = NULL; // map changes notification mutex is already locked
 }
 
 }

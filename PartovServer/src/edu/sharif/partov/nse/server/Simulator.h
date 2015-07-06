@@ -138,7 +138,6 @@ private:
 
   bool shuttingDown;
   QMutex *mutex;
-  QSemaphore *semaphore;
   QMutex *mayBlock;
 
   quint16 blockSize;

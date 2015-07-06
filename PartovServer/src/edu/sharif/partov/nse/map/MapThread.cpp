@@ -98,8 +98,7 @@ void MapThread::init () {
 
 void MapThread::quit () {
   lock->lock ();
-  emit
-  aboutToFinish (); /* @@ signal emitted @@ */
+  emit aboutToFinish (); /* @@ signal emitted @@ */
   lock->unlock ();
 
   QThread::quit ();

@@ -34,6 +34,7 @@
 #include "edu/sharif/partov/nse/usermanagement/User.h"
 
 #include "edu/sharif/partov/nse/plugin/Router.h"
+#include "edu/sharif/partov/nse/plugin/SimulatedNode.h"
 
 #include "edu/sharif/partov/nse/util/ScalarLogger.h"
 #include "edu/sharif/partov/nse/util/NonBlockingLocker.h"
@@ -84,7 +85,7 @@ MapThread *MapFactory::createOrRetrieveMap (
     edu::sharif::partov::nse::usermanagement::User user, QString mapFileName,
     QString creatorId, bool needNewMap, QHostAddress host, bool finalizeMap)
 throw (MapNotFoundException *, MaximumMapInstancesPerUserViolatedException *,
-    OutOfResourceException *, AuthorizationException *) {
+       OutOfResourceException *, AuthorizationException *) {
   edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
   if (!locker.isLocked ()) {
     return NULL;
@@ -154,8 +155,8 @@ throw (MapNotFoundException *) {
     // TODO: This must be done within Map class
     if (root.localName () != "map"
         || (version != Map::MAP_VERSION &&
-        version != "3.3" &&
-        version != "3.2" && version != "3.1" && version != "3.0")
+            version != "3.3" &&
+            version != "3.2" && version != "3.1" && version != "3.0")
         || root.attribute ("name") != mapFileName
         || (count = root.attribute ("count").toInt ()) <= 0) {
       throw new MapNotFoundException
@@ -180,6 +181,16 @@ throw (MapNotFoundException *) {
   } else {
     return it.value ();
   }
+}
+
+bool MapFactory::releaseNode (
+    edu::sharif::partov::nse::plugin::SimulatedNode *node) {
+  edu::sharif::partov::nse::util::NonBlockingLocker locker (mutex, false);
+  if (!locker.isLocked ()) {
+    return false;
+  }
+  node->releaseNode ();
+  return true;
 }
 
 void MapFactory::freeResources (MapThread *map, QString creatorId, const QString &mapName,

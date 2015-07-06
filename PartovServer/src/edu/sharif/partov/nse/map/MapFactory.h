@@ -52,6 +52,7 @@ class User;
 namespace plugin {
 
 class Router;
+class SimulatedNode;
 }
 namespace util {
 
@@ -108,6 +109,7 @@ public:
       MaximumMapInstancesPerUserViolatedException *, OutOfResourceException *,
       AuthorizationException *);
 
+  bool releaseNode (edu::sharif::partov::nse::plugin::SimulatedNode *node);
   void freeResources (MapThread *map, QString creatorId, const QString &mapName,
       int index);
   void removeMapFromManagedMaps (MapThread *map);
