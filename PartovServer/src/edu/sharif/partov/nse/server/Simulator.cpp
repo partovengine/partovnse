@@ -840,7 +840,7 @@ void Simulator::run () {
 void Simulator::displayError (QAbstractSocket::SocketError errorCode) {
   Q_ASSERT (QThread::currentThread () == MAIN_THREAD);
   if (Server::isVerbose ()) {
-    qDebug ("An error occurred during TCP IO operation, code %d", errorCode);
+    qDebug () << "TCP socket error: " << errorCode;
   }
 }
 
