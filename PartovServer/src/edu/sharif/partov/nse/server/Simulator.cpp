@@ -43,6 +43,7 @@
 
 #include <QTimer>
 #include <QMutex>
+#include <QDataStream>
 
 namespace edu {
 namespace sharif {

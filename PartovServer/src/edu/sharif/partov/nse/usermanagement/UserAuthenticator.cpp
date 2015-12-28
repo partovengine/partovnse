@@ -27,6 +27,7 @@
 #include "edu/sharif/partov/nse/server/Server.h"
 
 #include <QTcpSocket>
+#include <QDataStream>
 
 namespace edu {
 namespace sharif {

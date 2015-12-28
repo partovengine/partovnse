@@ -48,6 +48,7 @@ private:
 
   static const char *NORMAL_COLOR;
   static const char *DEBUG_COLOR;
+  static const char *INFO_COLOR;
   static const char *WARNING_COLOR;
   static const char *CRITICAL_COLOR;
   static const char *FATAL_COLOR;

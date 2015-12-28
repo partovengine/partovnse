@@ -26,22 +26,12 @@
 #define ETHERNETDIRECTACCESSDRIVER_H_
 
 #include <QList>
+#include <string>
 
 #include "edu/sharif/partov/nse/network/IOException.h"
 
 #include "NoActiveNetworkAdapterException.h"
 
-namespace std {
-
-template < typename _CharT >
-struct char_traits;
-template < typename _Tp >
-class allocator;
-template < typename _CharT, typename _Traits, typename _Alloc >
-class basic_string;
-
-typedef basic_string < char > string;
-}
 
 class QMutex;
 class QWaitCondition;

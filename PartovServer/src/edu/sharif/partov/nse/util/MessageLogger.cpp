@@ -40,6 +40,7 @@ MessageLogger *MessageLogger::me = 0;
 
 const char *MessageLogger::NORMAL_COLOR = "\033[0m";
 const char *MessageLogger::DEBUG_COLOR = "\033[0;32m"; // GREEN
+const char *MessageLogger::INFO_COLOR = "\033[0;36m"; // CYAN
 const char *MessageLogger::WARNING_COLOR = "\033[1;33m"; // YELLOW
 const char *MessageLogger::CRITICAL_COLOR = "\033[1;31m"; // RED
 const char *MessageLogger::FATAL_COLOR = "\033[1;35m"; // MAGNET
@@ -67,6 +68,10 @@ void MessageLogger::log (QtMsgType type,
   case QtDebugMsg:
     color = MessageLogger::DEBUG_COLOR;
     typestr = " [DEBUG] ";
+    break;
+  case QtInfoMsg:
+    color = MessageLogger::INFO_COLOR;
+    typestr = " [INFO] ";
     break;
   case QtWarningMsg:
     color = MessageLogger::WARNING_COLOR;

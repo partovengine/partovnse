@@ -29,6 +29,7 @@
 #include "edu/sharif/partov/nse/usermanagement/UserAuthenticator.h"
 
 #include <QCoreApplication>
+#include <QDataStream>
 #include <QTcpServer>
 #include <QList>
 #include <QDebug>
