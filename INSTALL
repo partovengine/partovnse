@@ -45,7 +45,7 @@
 For installing central Partov server you need to install following dependencies:
  1. MySQL/MariaDB Database Management System (for users' information)
  2. libpcap 1.5.1 or above (both its library and dev version for emulation capabilities)
- 3. Qt 5 development libraries (latest tested version is 5.4.1)
+ 3. Qt 5 development libraries (latest tested version is 5.5.1)
 
 After installing MySQL database, use the ``PartovServer/deploy/bin/createdb.sql'' SQL
 file in order to create a database, user account, and required table/contents (you need
