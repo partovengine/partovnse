@@ -48,6 +48,7 @@ Database::Database (QString host, int port, QString dbname, QString user, QStrin
 authenticationQuery (0), valid (false) {
   db = QSqlDatabase::addDatabase ("QMYSQL", PartovDBConnectionName);
   if (!db.isValid ()) {
+    qWarning ("QMYSQL driver is missing");
     return;
   }
   db.setHostName (host);
@@ -56,12 +57,14 @@ authenticationQuery (0), valid (false) {
   db.setUserName (user);
   db.setPassword (pass);
   if (!db.open ()) {
+    qWarning ("Database address is unreachable and/or its credentials are wrong");
     return;
   }
   authenticationQuery = new QSqlQuery (db);
   if (!authenticationQuery->prepare ("SELECT userName, groupName FROM User"
                                      " WHERE userName = ? AND password = md5(?)"
                                      " AND active = 1")) {
+    qWarning ("Failed to prepare the SQL query");
     return;
   }
   valid = true;
@@ -101,6 +104,7 @@ bool Database::init () {
   bool ok = true;
   int port = config.value ("port", 3306).toInt (&ok);
   if (!ok) {
+    qWarning ("Database port number is invalid");
     return false;
   }
   QString dbname = config.value ("dbname").toString ();
@@ -110,6 +114,7 @@ bool Database::init () {
 
   Database::me = new Database (host, port, dbname, user, pass);
   if (!Database::me->valid) {
+    qWarning ("Database object is invalid");
     Database::destroy ();
     return false;
   }
